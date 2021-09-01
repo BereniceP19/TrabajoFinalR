@@ -18,30 +18,31 @@ library(magrittr)
 ```
 
 ## Resumen
+El trabajo se realizará en base a datos sobre sintomatología depresiva de 4900 sujetos. Éstos fueron recopilados mediante un cuestionario de autoinforme conformado por 9 preguntas, permitiendo que fueran respondidas con un rango de números del 1 al 5.
 
-Insertar acá un breve resumen (menos de 2000 palabras) del tema del TP final.
+El principal objetivo de éste trabajo es aplicar análisis de redes de síntomas depresivos, comparando dos grupos principales, ideación suicida vs no ideación suicida, permitiendo así estudiar las correlaciones entre ambos.
+
+Por otra parte, se buscará analizar las relaciones entre las cuatro variables incluidas (sexo, edad, pregunta, respuesta) para comprobar si hay vínculos destacables entre las mismas.
+Se cuentan con 44181 observaciones, pero éstas se ven reducidas drásticamente al filtrarse los grupos principales, es decir, aquellos que estarían compuestos por las respuestas “1” (no ideación suicida) y “5” (ideación suicida). Es a éstas observaciones que se aplicará el análisis en base a la edad, al sexo, y a otras condiciones aún a definir. 
 
 ## Estructura de los datos
 
 Describir brevemente los datos (tidy data): 
 
-- Cuántas variables tienen? sexo, edad, pregunta, respuesta
-- De qué tipo es cada variable? todos sexo puede ser int o boolean, el resto son todos int. edad no tiene rango. preguntas y respuestas tienen un rango de 1 a 5
-- Cuántas observaciones? en total hay 44181 observaciones cuando se convierte a tidy pero si nos quedamos solo con pensamiento suicida tenemos 4909
-
-En caso de que ya tengan los datos en formato tidy como para cargar en **R**, se puede acompañar con algún breve análisis exploratorio. Por ejemplo:
+- Cuántas variables tienen? Se tienen cuatro variables, las cuales son : Sexo, Edad, Pregunta y  Respuesta
+- De qué tipo es cada variable? La variable "Sexo" puede ser int o boolean; "Edad" no tiene rango (int), "Preguntas" es un char y "Respuestas" es un int. Las variables "Preguntas" y "Respuestas" tienen un rango de 1 a 5.
+- Cuántas observaciones? En total se poseen 44181 observaciones cuando los datos se convierten a formato tidy, pero si nos limitamos a aquellas relativas al pensamiento suicida restan 4909 observaciones.
 
 
-## Cargo la base. 
+## Carga de la base de datos. 
 
 ```{r}
 datos_totales <- read.csv("Base4900_on-line.csv", sep = ";", dec = ".", header = TRUE)
 
 ```
 
-##Convierto la tabla a tidy. Las preguntas ahora aparecen en una sola columna llamada "Preguntas"
-y los valores de respuesta aparecen en una columna asociada llamada "Respuestas".
-Cambie los nombres de las columnas para que no fueran tan largos. Quizas es mejor opcion renombrarlos a P1, P2, etc.. Pero no queria perder la referencia al sintoma de cada pregunta. Ahora tendriamos 4 variables (sexo, edad, pregunta, respuesta)
+##Conversión de la tabla a tidy. Las preguntas ahora aparecen en una sola columna llamada "Preguntas", y los valores de respuesta aparecen en una columna asociada llamada "Respuestas".
+#Cambie los nombres de las columnas para que no fueran tan largos. Quizas es mejor opcion renombrarlos a P1, P2, etc.. Pero no queria perder la referencia al sintoma de cada pregunta. Ahora tendriamos 4 variables (sexo, edad, pregunta, respuesta)
 
 ```{r}
 datos_totales_Tidy <- datos_totales %>% pivot_longer(c(PocoInteres,SensacionDeDepresion, ProblemasDeSuenio, 
@@ -62,19 +63,18 @@ pensamiento_suicida
 
 ```{r}
 pensamiento_suicida_1 <- pensamiento_suicida %>% filter(Respuestas == "1")
+
+ 
 ```
 
 #Filtro para pensamiento suicida con respuesta 5. Sin ordenar
 ```{r}
 pensamiento_suicida_5 <- pensamiento_suicida %>% filter(Respuestas == "5")
+
 ```
 
-#Pensamiento suicida 1 y 5 en la misma lista
-```{r}
-pensamiento_suicida_extremos <- pensamiento_suicida %>% filter(Respuestas == "5" | Respuestas == "1") %>% arrange(Respuestas)
-```
 
-#GRAFICOS#
+#GRAFICOS -Instancia exploratoria v1#
 #grafico pensamientos suicidas 1 en funcion del sexo 
 ```{r}
 pensamiento_suicida_1 %>% ggplot(aes(x = Sexo, y = Respuestas)) + 
@@ -102,68 +102,96 @@ pensamiento_suicida_5 %>% ggplot(aes(x = Edad, y = Respuestas)) + geom_dotplot()
 ```
 
 #grafico gral comparacion entre sexo y edad de los participantes
+
+
+
+## PRUEBAS INICIALES TIDYVERSE
+
+## 1.  Correr Librerias
+
 ```{r}
-pensamiento_suicida %>% ggplot(aes(x = Sexo, y = Edad)) + geom_dotplot()
+library("ggplot2")
+library("qgraph")
+library("bootnet")
+library("psychonetrics")
+library("NetworkComparisonTest")
+library("EstimateGroupNetwork")
+library("dplyr")
+
 ```
 
-
-## A PARTIR DE ACA ESTA LO QUE COMPARTIO EZEQUIEL, HAY QUE HACERLO FUNCIONAR POR EL CAMBIO DE NOMBRES Y ESAS COSAS. 
-
-Pruebas iniciales de tidyverse. 
-Genero diferentes tibbles (data frames). Aplico la eliminación de datos ausentes con na.rm
+## 2.  Bases de Datos 
+## 2.1. BDI-II
 
 ```{r}
-sumarise_Base <- Base %>% 
-    group_by(Sexo, Edad)
-  
+Base <- read.csv("phq.csv", sep = ";", dec = ".", header = TRUE)
 
-summarise(sumarise_Base, phqmean = mean(p1,  na.rm = TRUE))
+
+suicide <- Base[Base$Suicide_extrem == 1, ]
+non_suicide <- Base[Base$Suicide_extrem == 0, ]
+
+data_suicide <- suicide[3:10]
+data_nonsuicide <- non_suicide[3:10]
+
+suicide2 <- Base[Base$Suicide_extrem2 == 1, ]
+non_suicide2 <- Base[Base$Suicide_extrem2 == 0, ]
+
+data_suicide2 <- suicide2[3:10]
+data_nonsuicide2 <- non_suicide2[3:10]
+
+data_suicide2<- na.omit(data_suicide2)
+data_nonsuicide2<- na.omit(data_nonsuicide2)
+
+data_suicide<- na.omit(data_suicide)
+data_nonsuicide<- na.omit(data_nonsuicide)
+
+
 ```
-
-## Herramientas para análisis exploratorios y curado de base de datos
+## 3.  Estimacion de Redes 
+## 3.1. BDI-II
 
 ```{r}
+Network_suicide <- estimateNetwork(data_suicide,
+                                 default = "EBICglasso",
+                                 corMethod = "spearman")
+Network_non_suicide <- estimateNetwork(data_nonsuicide,
+                                   default = "EBICglasso",
+                                   corMethod = "spearman")
 
-Base2 <- Base %>% 
-mutate(Sexo = as.factor(Sexo)) 
+L <- averageLayout(Network_suicide, Network_non_suicide)
+Max <- max(abs(c(getWmat(Network_suicide), getWmat(Network_non_suicide))))
+layout(t(1:2))
+plot(Network_suicide, layout = L, title = "Suicide", maximum = Max)
+plot(Network_non_suicide, layout = L, title = "Non Suicide", maximum = Max)
 
+Network_suicide2 <- estimateNetwork(data_suicide2,
+                                 default = "EBICglasso",
+                                 corMethod = "spearman")
+Network_non_suicide2 <- estimateNetwork(data_nonsuicide2,
+                                   default = "EBICglasso",
+                                   corMethod = "spearman")
 
+L <- averageLayout(Network_suicide2, Network_non_suicide2)
+Max <- max(abs(c(getWmat(Network_suicide2), getWmat(Network_non_suicide2))))
+layout(t(1:2))
+plot(Network_suicide2, layout = L, title = "Suicide", maximum = Max)
+plot(Network_non_suicide2, layout = L, title = "Non Suicide", maximum = Max)
 
-Base2  %>% 
-summary()
-  
+```
+## 4. Test de Comparación de Redes
+## 4.1.1 BDI-II: NCT
 
-summaryBase <-Base2  %>% 
-summary()
+```{r}
+set.seed(1)
+NCTres <- NCT(data_suicide, data_nonsuicide, 
+              it=100,
+              test.edges = TRUE,
+              progressbar= FALSE,
+              edges = "all",
+              p.adjust.methods = "bonferroni")
 
+summary(NCTres)
 
-
-
-# install.packages("skimr")
-
-library(skimr)
-Base2 %>% 
-skim() 
-
-
-
-
-# install.packages("GGally")   install.packages("ggpubr")
-# library(GGally)            library(ggpubr)
-
-
-
-library(GGally)
-library(ggpubr)
-
-Base2 %>% 
-  drop_na %>% 
-  select(all_of(c("p1", "p2", "p3", "p4", "p5",
-                  "p6","p7","p8","p9"))) %>%
-  ggpairs(lower = NULL) +
-  theme_pubclean() +
-  theme(axis.text.x = element_text(angle = 90, 
-                                   vjust = 0.5, 
-                                   hjust=1))
+NCTres$einv.pvals[which(NCTres$einv.pvals[,3] < 0.05), ]
 
 ```
