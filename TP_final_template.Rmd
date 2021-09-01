@@ -1,0 +1,131 @@
+---
+title: "Sintomatología depresiva en personas con Ideación Suicida: Un análisis de redes"
+author: "Ezequiel Franco, Berenice Piceda, Sol Gomez"
+date: "9/1/2021"
+output:
+  html_document:
+    code_folding: show
+    theme: paper
+    highlight: pygments
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggplot2)
+library(magrittr)
+```
+
+## Resumen
+
+Insertar acá un breve resumen (menos de 2000 palabras) del tema del TP final.
+
+## Estructura de los datos
+
+Describir brevemente los datos (tidy data): 
+
+- Cuántas variables tienen? sexo, edad, pregunta, respuesta
+- De qué tipo es cada variable? todos sexo puede ser int o boolean, el resto son todos int. edad no tiene rango. preguntas y respuestas tienen un rango de 1 a 5
+- Cuántas observaciones? en total hay 44181 observaciones cuando se convierte a tidy pero si nos quedamos solo con pensamiento suicida tenemos 4909
+
+En caso de que ya tengan los datos en formato tidy como para cargar en **R**, se puede acompañar con algún breve análisis exploratorio. Por ejemplo:
+
+
+## Cargo la base. 
+
+```{r}
+datos_totales <- read.csv("Base4900_on-line.csv", sep = ";", dec = ".", header = TRUE)
+
+```
+
+##Convierto la tabla a tidy. Las preguntas ahora aparecen en una sola columna llamada "Preguntas"
+y los valores de respuesta aparecen en una columna asociada llamada "Respuestas".
+Cambie los nombres de las columnas para que no fueran tan largos. Quizas es mejor opcion renombrarlos a P1, P2, etc.. Pero no queria perder la referencia al sintoma de cada pregunta. Ahora tendriamos 4 variables (sexo, edad, pregunta, respuesta)
+
+```{r}
+datos_totales_Tidy <- datos_totales %>% pivot_longer(c(PocoInteres,SensacionDeDepresion, ProblemasDeSuenio, 
+                                     SensacionDeCansancio, PocoApetito, SensacionDeFracaso, 
+                                     ProblemasDeConcentracion, AccionarLento, PensamientosSuicidas),
+                                   names_to = "Preguntas", values_to = "Respuestas") %>% drop_na()
+```
+
+#Filtro para PensamientosSuicidas ordenados de menor a mayor en funcion de las respuestas 
+
+```{r}
+pensamiento_suicida <- datos_totales_Tidy %>% filter(Preguntas == "PensamientosSuicidas") %>%
+  arrange(Respuestas)
+
+pensamiento_suicida
+```
+#Filtro para pensamiento suicida con respuesta 1. Sin ordenar
+
+```{r}
+pensamiento_suicida_1 <- pensamiento_suicida %>% filter(Respuestas == "1")
+```
+
+#Filtro para pensamiento suicida con respuesta 5. Sin ordenar
+```{r}
+pensamiento_suicida_5 <- pensamiento_suicida %>% filter(Respuestas == "5")
+```
+
+## A PARTIR DE ACA ESTA LO QUE COMPARTIO EZEQUIEL, HAY QUE HACERLO FUNCIONAR POR EL CAMBIO DE NOMBRES Y ESAS COSAS. 
+
+Pruebas iniciales de tidyverse. 
+Genero diferentes tibbles (data frames). Aplico la eliminación de datos ausentes con na.rm
+
+```{r}
+sumarise_Base <- Base %>% 
+    group_by(Sexo, Edad)
+  
+
+summarise(sumarise_Base, phqmean = mean(p1,  na.rm = TRUE))
+```
+
+## Herramientas para análisis exploratorios y curado de base de datos
+
+```{r}
+
+Base2 <- Base %>% 
+mutate(Sexo = as.factor(Sexo)) 
+
+
+
+Base2  %>% 
+summary()
+  
+
+summaryBase <-Base2  %>% 
+summary()
+
+
+
+
+# install.packages("skimr")
+
+library(skimr)
+Base2 %>% 
+skim() 
+
+
+
+
+# install.packages("GGally")   install.packages("ggpubr")
+# library(GGally)            library(ggpubr)
+
+
+
+library(GGally)
+library(ggpubr)
+
+Base2 %>% 
+  drop_na %>% 
+  select(all_of(c("p1", "p2", "p3", "p4", "p5",
+                  "p6","p7","p8","p9"))) %>%
+  ggpairs(lower = NULL) +
+  theme_pubclean() +
+  theme(axis.text.x = element_text(angle = 90, 
+                                   vjust = 0.5, 
+                                   hjust=1))
+
+```

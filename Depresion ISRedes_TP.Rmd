@@ -1,0 +1,105 @@
+---
+title: '...'
+author: "..."
+output:
+  html_document:
+    code_folding: show
+    theme: paper
+    highlight: pygments
+    toc: yes
+  pdf_document:
+    toc: yes
+---
+
+## 1.  Correr Librerias
+
+```{r}
+library("ggplot2")
+library("qgraph")
+library("bootnet")
+library("psychonetrics")
+library("NetworkComparisonTest")
+library("EstimateGroupNetwork")
+library("dplyr")
+```
+
+## 2.  Bases de Datos 
+## 2.1. BDI-II
+
+```{r}
+Base <- read.csv("phq.csv", sep = ";", dec = ".", header = TRUE)
+
+
+suicide <- Base[Base$Suicide_extrem == 1, ]
+non_suicide <- Base[Base$Suicide_extrem == 0, ]
+
+data_suicide <- suicide[3:10]
+data_nonsuicide <- non_suicide[3:10]
+
+suicide2 <- Base[Base$Suicide_extrem2 == 1, ]
+non_suicide2 <- Base[Base$Suicide_extrem2 == 0, ]
+
+data_suicide2 <- suicide2[3:10]
+data_nonsuicide2 <- non_suicide2[3:10]
+
+data_suicide2<- na.omit(data_suicide2)
+data_nonsuicide2<- na.omit(data_nonsuicide2)
+
+data_suicide<- na.omit(data_suicide)
+data_nonsuicide<- na.omit(data_nonsuicide)
+
+
+```
+
+## 3.  Estimacion de Redes 
+## 3.1. BDI-II
+
+```{r}
+Network_suicide <- estimateNetwork(data_suicide,
+                                 default = "EBICglasso",
+                                 corMethod = "spearman")
+Network_non_suicide <- estimateNetwork(data_nonsuicide,
+                                   default = "EBICglasso",
+                                   corMethod = "spearman")
+
+L <- averageLayout(Network_suicide, Network_non_suicide)
+Max <- max(abs(c(getWmat(Network_suicide), getWmat(Network_non_suicide))))
+layout(t(1:2))
+plot(Network_suicide, layout = L, title = "Suicide", maximum = Max)
+plot(Network_non_suicide, layout = L, title = "Non Suicide", maximum = Max)
+
+Network_suicide2 <- estimateNetwork(data_suicide2,
+                                 default = "EBICglasso",
+                                 corMethod = "spearman")
+Network_non_suicide2 <- estimateNetwork(data_nonsuicide2,
+                                   default = "EBICglasso",
+                                   corMethod = "spearman")
+
+L <- averageLayout(Network_suicide2, Network_non_suicide2)
+Max <- max(abs(c(getWmat(Network_suicide2), getWmat(Network_non_suicide2))))
+layout(t(1:2))
+plot(Network_suicide2, layout = L, title = "Suicide", maximum = Max)
+plot(Network_non_suicide2, layout = L, title = "Non Suicide", maximum = Max)
+
+```
+## 4. Test de Comparación de Redes
+## 4.1.1 BDI-II: NCT
+
+```{r}
+set.seed(1)
+NCTres <- NCT(data_suicide, data_nonsuicide, 
+              it=100,
+              test.edges = TRUE,
+              progressbar= FALSE,
+              edges = "all",
+              p.adjust.methods = "bonferroni")
+
+summary(NCTres)
+
+NCTres$einv.pvals[which(NCTres$einv.pvals[,3] < 0.05), ]
+
+```
+
+
+
+
