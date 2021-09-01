@@ -69,6 +69,44 @@ pensamiento_suicida_1 <- pensamiento_suicida %>% filter(Respuestas == "1")
 pensamiento_suicida_5 <- pensamiento_suicida %>% filter(Respuestas == "5")
 ```
 
+#Pensamiento suicida 1 y 5 en la misma lista
+```{r}
+pensamiento_suicida_extremos <- pensamiento_suicida %>% filter(Respuestas == "5" | Respuestas == "1") %>% arrange(Respuestas)
+```
+
+#GRAFICOS#
+#grafico pensamientos suicidas 1 en funcion del sexo 
+```{r}
+pensamiento_suicida_1 %>% ggplot(aes(x = Sexo, y = Respuestas)) + 
+  geom_col(colour = "black",
+           fill = "#1380A1",
+           width = 0.5) +
+  labs(x = "Sexo",
+       y = "No ideacion suicida",
+       title = "Respuesta en genero para el grupo No Ideacion Suicida") + theme_dark()
+```
+
+#grafico pensamientos suicidas 1 en funcion de la edad
+```{r}
+pensamiento_suicida_1 %>% ggplot(aes(x = Edad, y = Respuestas)) + geom_col()
+```
+
+#grafico pensamientos suicidas 5 en funcion del sexo 
+```{r}
+pensamiento_suicida_5 %>% ggplot(aes(x = Sexo, y = Respuestas)) + geom_col()
+```
+
+#grafico pensamientos suicidas 5 en funcion de la edad
+```{r}
+pensamiento_suicida_5 %>% ggplot(aes(x = Edad, y = Respuestas)) + geom_dotplot()
+```
+
+#grafico gral comparacion entre sexo y edad de los participantes
+```{r}
+pensamiento_suicida %>% ggplot(aes(x = Sexo, y = Edad)) + geom_dotplot()
+```
+
+
 ## A PARTIR DE ACA ESTA LO QUE COMPARTIO EZEQUIEL, HAY QUE HACERLO FUNCIONAR POR EL CAMBIO DE NOMBRES Y ESAS COSAS. 
 
 Pruebas iniciales de tidyverse. 
