@@ -34,7 +34,7 @@ Describir brevemente los datos (tidy data):
 - Cuántas observaciones? En total se poseen 44181 observaciones cuando los datos se convierten a formato tidy, pero si nos limitamos a aquellas relativas al pensamiento suicida restan 4909 observaciones.
 
 
-## Carga de la base de datos. 
+## ANALISIS EXPLORATORIO- Carga de la base de datos. 
 
 ```{r}
 datos_totales <- read.csv("Base4900_on-line.csv", sep = ";", dec = ".", header = TRUE)
@@ -82,26 +82,46 @@ pensamiento_suicida_1 %>% ggplot(aes(x = Sexo, y = Respuestas)) +
            fill = "#1380A1",
            width = 0.5) +
   labs(x = "Sexo",
-       y = "No ideacion suicida",
-       title = "Respuesta en genero para el grupo No Ideacion Suicida") + theme_dark()
+       y = "Cantidad de respuestas",
+       title = "Respuesta según género -Grupo no ideación suicida") + theme_minimal()
+
+#habría que cambiar "1" y "2" por "fem" y "masc"
 ```
 
 #grafico pensamientos suicidas 1 en funcion de la edad
 ```{r}
-pensamiento_suicida_1 %>% ggplot(aes(x = Edad, y = Respuestas)) + geom_col()
+pensamiento_suicida_1 %>% ggplot(aes(x = Edad, y = Respuestas)) +
+geom_col(colour = "black",
+           fill = "#1380A1",
+           width = 0.5) +
+  labs(x = "Edad",
+       y = "Cantidad de respuestas",
+       title = "Respuesta según edad -Grupo no ideación suicida") + theme_minimal()
 ```
 
 #grafico pensamientos suicidas 5 en funcion del sexo 
 ```{r}
-pensamiento_suicida_5 %>% ggplot(aes(x = Sexo, y = Respuestas)) + geom_col()
+pensamiento_suicida_5 %>% ggplot(aes(x = Sexo, y = Respuestas)) + 
+  geom_col(colour = "black",
+           fill = "#1380A1",
+           width = 0.5) +
+  labs(x = "Sexo",
+       y = "Cantidad de respuestas",
+       title = "Respuesta según género -Grupo ideación suicida") + theme_minimal()
 ```
 
 #grafico pensamientos suicidas 5 en funcion de la edad
 ```{r}
-pensamiento_suicida_5 %>% ggplot(aes(x = Edad, y = Respuestas)) + geom_dotplot()
+pensamiento_suicida_5 %>% ggplot(aes(x = Edad, y = Respuestas)) + 
+geom_col(colour = "black",
+           fill = "#1380A1",
+           width = 0.5) +
+  labs(x = "Edad",
+       y = "Cantidad de respuestas",
+       title = "Respuesta según edad -Grupo ideación suicida") + theme_minimal()
 ```
 
-#grafico gral comparacion entre sexo y edad de los participantes
+#pendiente grafico gral comparacion entre sexo y edad de los participantes
 
 
 
@@ -117,6 +137,7 @@ library("psychonetrics")
 library("NetworkComparisonTest")
 library("EstimateGroupNetwork")
 library("dplyr")
+library("scales")
 
 ```
 
