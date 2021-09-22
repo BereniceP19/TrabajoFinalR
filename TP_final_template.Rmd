@@ -51,6 +51,13 @@ datos_totales_Tidy <- datos_totales %>% pivot_longer(c(PocoInteres,SensacionDeDe
                                    names_to = "Preguntas", values_to = "Respuestas") %>% drop_na()
 ```
 
+
+#Renombra nombre de variable Sexo a "Femenino" y "Masculino"
+```{r}
+datos_totales_Tidy$Sexo <- factor(datos_totales_Tidy$Sexo, labels=c("Femenino", "Masculino"))
+datos_totales_Tidy
+```
+
 #Filtro para PensamientosSuicidas ordenados de menor a mayor en funcion de las respuestas 
 
 ```{r}
@@ -121,7 +128,21 @@ geom_col(colour = "black",
        title = "Respuesta según edad -Grupo ideación suicida") + theme_minimal()
 ```
 
-#pendiente grafico gral comparacion entre sexo y edad de los participantes
+#pendiente grafico gral comparacion entre sexo y edad de los participantes. Revisar!!!!
+
+```{r}
+pensamiento_suicida %>% ggplot(aes(x = Sexo, y = Edad)) + 
+  geom_col(colour = "black",
+           fill = "#1380A1",
+           width = 0.5) +
+  labs(x = "Sexo",
+       y = "Edad",
+       title = "Relación entre sexo y edad- general") + theme_minimal()
+
+#está sumando las respuestas en vez de separarlo por valores?
+```
+
+
 
 
 
