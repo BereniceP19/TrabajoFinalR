@@ -138,7 +138,6 @@ geom_col(colour = "black",
 ```
 
 #pendiente grafico gral comparacion entre sexo y edad de los participantes. Revisar!!!!
-
 ```{r}
 pensamiento_suicida %>% ggplot(aes(x = Sexo, y = Edad)) + 
   geom_col(colour = "black",
