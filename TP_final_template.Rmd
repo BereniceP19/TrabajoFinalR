@@ -16,7 +16,7 @@ library(tidyverse)
 library(ggplot2)
 library(magrittr)
 ```
-
+##------------------------------------------------------------------------------
 ## Resumen
 1. Descripción general de la muestra y datos recolectados.
 El trabajo se realizará en base a datos sobre sintomatología depresiva a partir de una muestra online de 4900 sujetos. Los datos de los distintos síntomas depresivos han sido obtenidos a partir de la aplicación de la escala Patient Health Questionnaire 9 (PHQ-9), un instrumento estandarizado de autoreporte que indaga sobre nueve síntomas depresivos diferentes. Para ello el instrumento se basa en los criterios diagnóstico diagnóstico para el Trastorno Depresivo Mayor que establece el Manual Diagnóstico y Estadístico de Trastornos Mentales en su quinta edición (DSM-V). La escala chequea la presencia de los siguientes síntomas en las pasadas últimas dos semanas: 1) ánimo deprimido; 2) anhedonia; 3) alteraciones en el sueño; 4) cansancio; 5) alteraciones en el apetito o en el peso; 6) sentimientos de culpa o inutilidad; 7) dificultades para concentrarse; 8) sentimientos de lentitud o preocupación; y 9) ideación suicida. Los ítems se responden en una escala de Likert desde 1 (nunca) a 5 (casi todos los días).  
@@ -45,6 +45,7 @@ A continuación se describen brevemente los datos y su estructura para este obje
 2. Estimación de modelos de redes.
 Para este caso no fue pertinente llevar el dataset a un formato tidy similar al aplicado para los análisis iniciales. Esto es así debido a que cada síntoma depresivo se entiende como una variable diferente, que puede estar asociada con las restantes, pero que refiere a un atributo distintivo de la depresión. Más importante aún, el objetivo de la estimación de modelos de redes es verificar como estas distintas variables correlacionan entre sí, y si éstas correlaciones parciales entre ellas presentan alguna diferencia entre dos grupos independientes de participantes (aquellos con alta ideación suicida vs aquellos que no manifestaron ideación suicida). Por todo ello, en este caso se cuenta con 11 variables (edad, sexo, phq-1 al phq-8, y el item 9 del phq que sirve para generar los grupos extremos en esta variable referida a la ideación suicida). Sin embargo, para simplificar la base solo se consideró la variable de ideación suicida con los grupos ya generados (variable grupos extremos en el item 9 del phq, una variable nominal dicotómica, 0 = grupo no ideación suicida y 1 = grupo con ideación suicida) y los síntomas depresivos restantes (ítems 1 al 8 del PHQ-9, variables enteras con rango del 1 al 5). Esta base se denomina "phq.csv" en los análisis correspondientes, y contiene los datos de las 4909 observaciones. 
 
+##-------------------------------------------------------------------------------
 ## ANALISIS EXPLORATORIO- Carga de la base de datos. 
 
 ```{r}
@@ -66,6 +67,20 @@ datos_totales_Tidy <- datos_totales %>% pivot_longer(c(PocoInteres,SensacionDeDe
 ```{r}
 datos_totales_Tidy$Sexo <- factor(datos_totales_Tidy$Sexo, labels=c("Femenino", "Masculino"))
 datos_totales_Tidy
+
+datos_totales$Sexo <- factor(datos_totales$Sexo, labels=c("Femenino", "Masculino"))
+datos_totales
+```
+
+#Grafico de la poblacion general en base a genero y edad
+```{r}
+datos_totales_GeneroYEdad <- datos_totales %>%
+  ggplot(aes(x = Sexo, y = Edad, color = Sexo)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(width = 0.33) + theme_minimal()
+
+datos_totales_GeneroYEdad
+  
 ```
 
 #Grafico General. Que respuesta gana en cada pregunta.
@@ -214,19 +229,6 @@ geom_col(colour = "black",
   labs(x = "Edad",
        y = "Cantidad de respuestas",
        title = "Respuesta según edad -Grupo ideación suicida") + theme_minimal()
-```
-
-#Grafico general. Comparacion entre sexo y edad de los participantes.
-```{r}
-pensamiento_suicida %>% ggplot(aes(x = Sexo, y = Edad)) + 
-  geom_col(colour = "black",
-           fill = "#1380A1",
-           width = 0.5) +
-  labs(x = "Sexo",
-       y = "Edad",
-       title = "Relación entre sexo y edad- general") + theme_minimal()
-
-#está sumando las respuestas en vez de separarlo por valores?
 ```
 
 
