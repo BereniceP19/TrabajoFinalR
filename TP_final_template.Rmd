@@ -68,25 +68,106 @@ datos_totales_Tidy$Sexo <- factor(datos_totales_Tidy$Sexo, labels=c("Femenino", 
 datos_totales_Tidy
 ```
 
-#Filtro para PensamientosSuicidas ordenados de menor a mayor en funcion de las respuestas 
+#Grafico General. Que respuesta gana en cada pregunta.
+```{r}
+datos_totales_Tidy_Pregunta9 <- datos_totales_Tidy %>%
+  arrange(Preguntas) %>% filter(Preguntas == "PensamientosSuicidas") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "9-PensamientosSuicidas")
 
+datos_totales_Tidy_Pregunta8 <- datos_totales_Tidy %>%
+  arrange(Preguntas) %>% filter(Preguntas == "AccionarLento") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "8-AccionarLento")
+
+datos_totales_Tidy_Pregunta7 <- datos_totales_Tidy %>%
+  arrange(Preguntas) %>% filter(Preguntas == "ProblemasDeConcentracion") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "7-ProblemasDeConcentracion")
+
+datos_totales_Tidy_Pregunta6 <- datos_totales_Tidy %>%
+  arrange(Preguntas) %>% filter(Preguntas == "SensacionDeFracaso") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "6-AccionarLento")
+
+datos_totales_Tidy_Pregunta5 <- datos_totales_Tidy %>%
+  arrange(Preguntas) %>% filter(Preguntas == "PocoApetito") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "5-PocoApetito")
+
+datos_totales_Tidy_Pregunta4 <- datos_totales_Tidy %>%
+  arrange(Preguntas) %>% filter(Preguntas == "SensacionDeCansancio") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "4-SensacionDeCansancio")
+
+datos_totales_Tidy_Pregunta3 <- datos_totales_Tidy %>%
+  arrange(Preguntas) %>% filter(Preguntas == "ProblemasDeSuenio") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "3-ProblemasDeSuenio")
+
+datos_totales_Tidy_Pregunta2 <- datos_totales_Tidy %>%
+  arrange(Preguntas) %>% filter(Preguntas == "SensacionDeDepresion") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "2-SensacionDeDepresion")
+
+datos_totales_Tidy_Pregunta1 <- datos_totales_Tidy %>%
+  arrange(Preguntas) %>% filter(Preguntas == "PocoInteres") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "1-PocoInteres")
+
+respuestas_por_pregunta <- rbind(datos_totales_Tidy_Pregunta1) %>% 
+  rbind(datos_totales_Tidy_Pregunta2) %>%
+  rbind(datos_totales_Tidy_Pregunta3) %>%
+  rbind(datos_totales_Tidy_Pregunta4) %>%
+  rbind(datos_totales_Tidy_Pregunta5) %>%
+  rbind(datos_totales_Tidy_Pregunta6) %>%
+  rbind(datos_totales_Tidy_Pregunta7) %>%
+  rbind(datos_totales_Tidy_Pregunta8) %>%
+  rbind(datos_totales_Tidy_Pregunta9) %>%
+  arrange(Sintoma)
+
+respuestas_por_pregunta
+  
+respuestas_por_pregunta %>% ggplot(aes(x = Respuestas, y = Cantidad_de_rtas)) +
+  geom_col(colour = "black", width = 0.5) +
+  scale_fill_brewer(palette = "Blues") +
+  labs(x = "Respuestas",
+       y = "Cantidad de Respuestas",
+       title = "Respuesta ganadora en cada pregunta") + 
+  theme_minimal() +
+  facet_grid(. ~ Sintoma)
+  
+```
+
+#Filtro para PensamientosSuicidas ordenados de menor a mayor en funcion de las edades 
 ```{r}
 pensamiento_suicida <- datos_totales_Tidy %>% filter(Preguntas == "PensamientosSuicidas") %>%
-  arrange(Respuestas)
+  arrange(Edad)
 
 pensamiento_suicida
 ```
+
 #Filtro para pensamiento suicida con respuesta 1. Sin ordenar
 
 ```{r}
 pensamiento_suicida_1 <- pensamiento_suicida %>% filter(Respuestas == "1")
-
+pensamiento_suicida_1
  
 ```
 
 #Filtro para pensamiento suicida con respuesta 5. Sin ordenar
 ```{r}
 pensamiento_suicida_5 <- pensamiento_suicida %>% filter(Respuestas == "5")
+pensamiento_suicida_5
 
 ```
 
@@ -100,8 +181,6 @@ pensamiento_suicida_1 %>% ggplot(aes(x = Sexo, y = Respuestas)) +
   labs(x = "Sexo",
        y = "Cantidad de respuestas",
        title = "Respuesta según género -Grupo no ideación suicida") + theme_minimal()
-
-#habría que cambiar "1" y "2" por "fem" y "masc"
 ```
 
 #grafico pensamientos suicidas 1 en funcion de la edad
@@ -137,7 +216,7 @@ geom_col(colour = "black",
        title = "Respuesta según edad -Grupo ideación suicida") + theme_minimal()
 ```
 
-#pendiente grafico gral comparacion entre sexo y edad de los participantes. Revisar!!!!
+#Grafico general. Comparacion entre sexo y edad de los participantes.
 ```{r}
 pensamiento_suicida %>% ggplot(aes(x = Sexo, y = Edad)) + 
   geom_col(colour = "black",
@@ -150,6 +229,9 @@ pensamiento_suicida %>% ggplot(aes(x = Sexo, y = Edad)) +
 #está sumando las respuestas en vez de separarlo por valores?
 ```
 
+
+
+## -------------------------------------------------------------------------------
 ## ESTIMACION Y COMPARACIÓN DE LOS MODELOS DE REDES
 
 ## 1.  Correr Librerias
