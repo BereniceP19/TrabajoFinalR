@@ -25,13 +25,7 @@ El trabajo se realizará en base a datos sobre sintomatología depresiva a parti
 
 2. Análisis descriptivos.
 
-
-
-
-
-
-
-2. Estimación de modelos de redes.
+Estimación de modelos de redes.
 El principal objetivo de éste trabajo es analizar cómo correlacionan los distíntos síntomas depresivos mencionados (sintomas del 1 (ánimo depresivo) al 8 (sentimientos de lentitud o preocupación)) en función de la variable ideaicón suicida (que se evalúa a partir del síntoma 9 de la escala PHQ-9). Para este objetivo se estimarán modelos de redes denominadas Markov random field o redes no-direccionales (undirected network/undirected graphical model) en dos grupos extremos de participantes distribuidos en base al item 9 de ideación suicida. Para esto se aplica un modelo de redes denominado Gaussian graphical model (GGM). En GGM cada elemento de la matriz de covarianza inversa corresponde a una conección (edge, aristas) en la red, la cual vincula dos variables (nodes, nodos) si se evidencia una interacción. Las aristas se estandarizan como coeficientes de correlación parcial entre dos variables luego de condicionarlas al resto de las variables del dataset. Con el objetivo de minimizar los errores estándares así como la inestabilidad de los parámetros estimados debido al overfitting (particularmente en muestras pequeñas), es que, en lugar de estimar la GGM directamente invirtiendo la matriz de varianza-covarianza, el modelo se estima utilizando Least Absolute Shrinkage and Selection Operator (LASSO). A los fines de comparar las redes entre los grupos extremos de interés es que se consideran las siguientes medidas de invarianza: invarianza estructural (network structure invariance), invarianza en la fuerza global de las correlaciones (global strength invariance), e invarianza al nivel de las correlaciones parciales entre dos nodos dados (edge invariance). En cada una de estas se aplican pruebas de hipótesis basadas en permutaciones (permutation based hypothesis test) para verificar si se aprecian o no diferencias estadísticamente significativas en cada una de las medidas de invarianza. 
 
 
@@ -56,7 +50,8 @@ datos_totales <- read.csv("Base4900_on-line.csv", sep = ";", dec = ".", header =
 ```
 
 ##Conversión de la tabla a tidy. Las preguntas ahora aparecen en una sola columna llamada "Preguntas", y los valores de respuesta aparecen en una columna asociada llamada "Respuestas".
-#Cambie los nombres de las columnas para que no fueran tan largos. Quizas es mejor opcion renombrarlos a P1, P2, etc.. Pero no queria perder la referencia al sintoma de cada pregunta. Ahora tendriamos 4 variables (sexo, edad, pregunta, respuesta)
+#Cambie los nombres de las columnas para que no fueran tan largos.Ahora tendriamos 4 variables (sexo, edad, pregunta, respuesta)
+
 
 ```{r}
 datos_totales_Tidy <- datos_totales %>% pivot_longer(c(PocoInteres,SensacionDeDepresion, ProblemasDeSuenio, 
@@ -64,6 +59,15 @@ datos_totales_Tidy <- datos_totales %>% pivot_longer(c(PocoInteres,SensacionDeDe
                                      ProblemasDeConcentracion, AccionarLento, PensamientosSuicidas),
                                    names_to = "Preguntas", values_to = "Respuestas") %>% drop_na()
 ```
+
+#Renombro nombre de preguntas
+```{r}
+datos_totales_Tidy$Preguntas <- factor(datos_totales_Tidy$Preguntas, labels=c("P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P9"))
+datos_totales_Tidy %>% skim()
+
+```
+
+
 
 #Renombra nombre de variable Sexo a "Femenino" y "Masculino"
 ```{r}
@@ -90,58 +94,60 @@ datos_totales_GeneroYEdad
 #Grafico General. Que respuesta gana en cada pregunta.
 ```{r}
 datos_totales_Tidy_Pregunta9 <- datos_totales_Tidy %>%
-  arrange(Preguntas) %>% filter(Preguntas == "PensamientosSuicidas") %>%
+  arrange(Preguntas) %>% filter(Preguntas == "P9") %>%
   group_by(Respuestas) %>% 
   summarise(Cantidad_de_rtas = n()) %>%
-  mutate(Sintoma = "9-PensamientosSuicidas")
+  mutate(Sintoma = "9-Pensamientos Suicidas")
 
 datos_totales_Tidy_Pregunta8 <- datos_totales_Tidy %>%
-  arrange(Preguntas) %>% filter(Preguntas == "AccionarLento") %>%
+  arrange(Preguntas) %>% filter(Preguntas == "P8") %>%
   group_by(Respuestas) %>% 
   summarise(Cantidad_de_rtas = n()) %>%
-  mutate(Sintoma = "8-AccionarLento")
+  mutate(Sintoma = "8-Accionar Lento")
 
 datos_totales_Tidy_Pregunta7 <- datos_totales_Tidy %>%
-  arrange(Preguntas) %>% filter(Preguntas == "ProblemasDeConcentracion") %>%
+  arrange(Preguntas) %>% filter(Preguntas == "P7") %>%
   group_by(Respuestas) %>% 
   summarise(Cantidad_de_rtas = n()) %>%
-  mutate(Sintoma = "7-ProblemasDeConcentracion")
+  mutate(Sintoma = "7-Problemas de Concentración")
 
 datos_totales_Tidy_Pregunta6 <- datos_totales_Tidy %>%
-  arrange(Preguntas) %>% filter(Preguntas == "SensacionDeFracaso") %>%
+  arrange(Preguntas) %>% filter(Preguntas == "P6") %>%
   group_by(Respuestas) %>% 
   summarise(Cantidad_de_rtas = n()) %>%
-  mutate(Sintoma = "6-AccionarLento")
+  mutate(Sintoma = "6-Sensación de Fracaso")
 
 datos_totales_Tidy_Pregunta5 <- datos_totales_Tidy %>%
-  arrange(Preguntas) %>% filter(Preguntas == "PocoApetito") %>%
+  arrange(Preguntas) %>% filter(Preguntas == "P5") %>%
   group_by(Respuestas) %>% 
   summarise(Cantidad_de_rtas = n()) %>%
-  mutate(Sintoma = "5-PocoApetito")
+  mutate(Sintoma = "5-Poco Apetito")
 
 datos_totales_Tidy_Pregunta4 <- datos_totales_Tidy %>%
-  arrange(Preguntas) %>% filter(Preguntas == "SensacionDeCansancio") %>%
+  arrange(Preguntas) %>% filter(Preguntas == "P4") %>%
   group_by(Respuestas) %>% 
   summarise(Cantidad_de_rtas = n()) %>%
-  mutate(Sintoma = "4-SensacionDeCansancio")
+  mutate(Sintoma = "4-Sensación de Cansancio")
 
 datos_totales_Tidy_Pregunta3 <- datos_totales_Tidy %>%
-  arrange(Preguntas) %>% filter(Preguntas == "ProblemasDeSuenio") %>%
+  arrange(Preguntas) %>% filter(Preguntas == "P3") %>%
   group_by(Respuestas) %>% 
   summarise(Cantidad_de_rtas = n()) %>%
-  mutate(Sintoma = "3-ProblemasDeSuenio")
+  mutate(Sintoma = "3-Problemas de Sueño")
 
 datos_totales_Tidy_Pregunta2 <- datos_totales_Tidy %>%
-  arrange(Preguntas) %>% filter(Preguntas == "SensacionDeDepresion") %>%
+  arrange(Preguntas) %>% filter(Preguntas == "P2") %>%
   group_by(Respuestas) %>% 
   summarise(Cantidad_de_rtas = n()) %>%
-  mutate(Sintoma = "2-SensacionDeDepresion")
+  mutate(Sintoma = "2-Sensación de Depresion")
 
-datos_totales_Tidy_Pregunta1 <- datos_totales_Tidy %>%
-  arrange(Preguntas) %>% filter(Preguntas == "PocoInteres") %>%
+datos_totales_Tidy_Pregunta1 <- datos_totales_Tidy %>% 
+  arrange(Preguntas) %>% filter(Preguntas == "P1") %>%
   group_by(Respuestas) %>% 
   summarise(Cantidad_de_rtas = n()) %>%
-  mutate(Sintoma = "1-PocoInteres")
+  mutate(Sintoma = "1-Poco Interés")
+
+
 
 respuestas_por_pregunta <- rbind(datos_totales_Tidy_Pregunta1) %>% 
   rbind(datos_totales_Tidy_Pregunta2) %>%
@@ -156,14 +162,17 @@ respuestas_por_pregunta <- rbind(datos_totales_Tidy_Pregunta1) %>%
 
 fill_para_grafico <- respuestas_por_pregunta[1] %>% group_by(Respuestas) %>% summarise()
 fill_para_grafico
+
   
-respuestas_por_pregunta %>% ggplot(aes(x = Respuestas, y = Cantidad_de_rtas)) +
-  geom_col(width = 0.5, color = "blue") +
+respuestas_por_pregunta %>% ggplot + aes(x = Respuestas, y = Cantidad_de_rtas, fill = Sintoma) +
+  geom_col(width = 0.5, position = position_dodge(2)) +
   labs(x = "Respuestas",
        y = "Cantidad de Respuestas",
-       title = "Respuesta ganadora en cada pregunta") + 
+       title = "Respuesta ganadora en cada pregunta- General") + 
   theme_minimal() +
   facet_grid(. ~ Sintoma)
+  
+  #FALTA VER COMO SACAR REFERENCIAS DE ARRIBA!!!!
   
 ```
 #Solo Respuesta 5 en todas las preguntas
@@ -174,22 +183,24 @@ respuesta_5_en_todas <- datos_totales_Tidy %>%
   summarise(Cantidad = n())
   
   respuesta_5_en_todas %>% ggplot(aes(x = Preguntas, y = Cantidad)) +
-  geom_col(width = 0.5, color = "blue", fill = "red") +
+  geom_col(colour = "black",
+           fill = "#1380A1",
+           width = 0.5) +
   labs(x = "Respuestas",
        y = "Cantidad de Respuestas",
-       title = "Respuesta ganadora en cada pregunta") + 
+       title = "Cantidad de respuestas máximas (5) en cada pregunta") + 
   theme_minimal()
 ```
-#Filtro para PensamientosSuicidas ordenados de menor a mayor en funcion de las edades 
+#Filtro para respuesta 9 - Ideación suicida
 ```{r}
-pensamiento_suicida <- datos_totales_Tidy %>% filter(Preguntas == "PensamientosSuicidas") %>%
+pensamiento_suicida <- datos_totales_Tidy %>% filter(Preguntas == "P9") %>%
   group_by(Respuestas) %>% summarise(Cantidad = n())
 
 pensamiento_suicida %>% ggplot(aes(x = Respuestas, y = Cantidad)) +
   geom_col(width = 0.5, color = "blue") +
   labs(x = "Respuestas",
        y = "Cantidad de Respuestas",
-       title = "Respuesta ganadora en cada pregunta") + 
+       title = "Respuestas para ideación suicida") + 
   theme_minimal()
 ```
 #----------------------------------------------------------------------------------------------------
@@ -198,9 +209,9 @@ pensamiento_suicida %>% ggplot(aes(x = Respuestas, y = Cantidad)) +
 ```{r}
 poblacion_entre_20y25 <- datos_totales_Tidy %>% filter(Edad >= 20 & Edad <= 25) 
 poblacion_entre_20y25 %>% ggplot(aes(x = Edad, y = Sexo, color = Sexo)) +
-  geom_boxplot(outlier.shape = NA) + 
-  theme_minimal() +
-  stat_halfeye(color = "black", fill = "orange", alpha = 0.3) 
+  geom_boxplot(outlier.shape = NA) +
+  labs(title = "Respuesta máxima (5) Ideación suicida - 20 a 25 años") +
+  theme_minimal()
 ```
 
 #Poblacion de entre 20 y 25 anios en funcion del genero
@@ -212,64 +223,67 @@ numero_por_genero_entre20y25 %>% ggplot(aes(x = Sexo, y = Cantidad)) +
   geom_col(colour = "black",
            fill = "#1380A1",
            width = 0.5) + 
+  labs(x = "Sexo",
+       y = "Cantidad de Respuestas",
+       title = "Población según género- 20 a 25 años") +
   theme_minimal()
 ```
 
-#grafico respuesta ganadora en este rango de edades entre 20 y 25
+#grafico respuesta ganadora en este rango de edades entre 20 y 25 - REVISAR QUITAR REFERENCIA DE ARRIBA!!!
 ```{r}
 poblacion_entre_20y25_Pregunta9 <- poblacion_entre_20y25 %>%
-  arrange(Preguntas) %>% filter(Preguntas == "PensamientosSuicidas") %>%
+  arrange(Preguntas) %>% filter(Preguntas == "P9") %>%
   group_by(Respuestas) %>% 
   summarise(Cantidad_de_rtas = n()) %>%
-  mutate(Sintoma = "9-PensamientosSuicidas")
+  mutate(Sintoma = "9-Pensamientos Suicidas")
 
 poblacion_entre_20y25_Pregunta8 <- poblacion_entre_20y25 %>%
-  arrange(Preguntas) %>% filter(Preguntas == "AccionarLento") %>%
+  arrange(Preguntas) %>% filter(Preguntas == "P8") %>%
   group_by(Respuestas) %>% 
   summarise(Cantidad_de_rtas = n()) %>%
-  mutate(Sintoma = "8-AccionarLento")
+  mutate(Sintoma = "8-Accionar Lento")
 
 poblacion_entre_20y25_Pregunta7 <- poblacion_entre_20y25 %>%
-  arrange(Preguntas) %>% filter(Preguntas == "ProblemasDeConcentracion") %>%
+  arrange(Preguntas) %>% filter(Preguntas == "P7") %>%
   group_by(Respuestas) %>% 
   summarise(Cantidad_de_rtas = n()) %>%
-  mutate(Sintoma = "7-ProblemasDeConcentracion")
+  mutate(Sintoma = "7-Problemas de Concentracion")
 
 poblacion_entre_20y25_Pregunta6 <- poblacion_entre_20y25 %>%
-  arrange(Preguntas) %>% filter(Preguntas == "SensacionDeFracaso") %>%
+  arrange(Preguntas) %>% filter(Preguntas == "P6") %>%
   group_by(Respuestas) %>% 
   summarise(Cantidad_de_rtas = n()) %>%
-  mutate(Sintoma = "6-AccionarLento")
+  mutate(Sintoma = "6-Sensación de Fracaso")
 
 poblacion_entre_20y25_Pregunta5 <- poblacion_entre_20y25 %>%
-  arrange(Preguntas) %>% filter(Preguntas == "PocoApetito") %>%
+  arrange(Preguntas) %>% filter(Preguntas == "P5") %>%
   group_by(Respuestas) %>% 
   summarise(Cantidad_de_rtas = n()) %>%
-  mutate(Sintoma = "5-PocoApetito")
+  mutate(Sintoma = "5-Poco Apetito")
 
 poblacion_entre_20y25_Pregunta4 <- poblacion_entre_20y25 %>%
-  arrange(Preguntas) %>% filter(Preguntas == "SensacionDeCansancio") %>%
+  arrange(Preguntas) %>% filter(Preguntas == "P4") %>%
   group_by(Respuestas) %>% 
   summarise(Cantidad_de_rtas = n()) %>%
-  mutate(Sintoma = "4-SensacionDeCansancio")
+  mutate(Sintoma = "4-Sensacion de Cansancio")
 
 poblacion_entre_20y25_Pregunta3 <- poblacion_entre_20y25 %>%
-  arrange(Preguntas) %>% filter(Preguntas == "ProblemasDeSuenio") %>%
+  arrange(Preguntas) %>% filter(Preguntas == "P3") %>%
   group_by(Respuestas) %>% 
   summarise(Cantidad_de_rtas = n()) %>%
-  mutate(Sintoma = "3-ProblemasDeSuenio")
+  mutate(Sintoma = "3-Problemas de Sueño")
 
 poblacion_entre_20y25_Pregunta2 <- poblacion_entre_20y25 %>%
-  arrange(Preguntas) %>% filter(Preguntas == "SensacionDeDepresion") %>%
+  arrange(Preguntas) %>% filter(Preguntas == "P2") %>%
   group_by(Respuestas) %>% 
   summarise(Cantidad_de_rtas = n()) %>%
-  mutate(Sintoma = "2-SensacionDeDepresion")
+  mutate(Sintoma = "2-Sensación de Depresion")
 
 poblacion_entre_20y25_Pregunta1 <- poblacion_entre_20y25 %>%
-  arrange(Preguntas) %>% filter(Preguntas == "PocoInteres") %>%
+  arrange(Preguntas) %>% filter(Preguntas == "P1") %>%
   group_by(Respuestas) %>% 
   summarise(Cantidad_de_rtas = n()) %>%
-  mutate(Sintoma = "1-PocoInteres")
+  mutate(Sintoma = "1-Poco Interés")
 
 respuestas_por_pregunta_entre20y25 <- rbind(poblacion_entre_20y25_Pregunta1) %>% 
   rbind(poblacion_entre_20y25_Pregunta2) %>%
@@ -282,18 +296,19 @@ respuestas_por_pregunta_entre20y25 <- rbind(poblacion_entre_20y25_Pregunta1) %>%
   rbind(poblacion_entre_20y25_Pregunta9) %>%
   arrange(Sintoma)
 
-respuestas_por_pregunta_entre20y25 %>% ggplot(aes(x = Respuestas, y = Cantidad_de_rtas)) +
-  geom_col(width = 0.5, color = "blue") +
+respuestas_por_pregunta_entre20y25 %>% ggplot + aes(x = Respuestas, y = Cantidad_de_rtas, fill = Sintoma) +
+  geom_col(width = 0.5) +
   labs(x = "Respuestas",
        y = "Cantidad de Respuestas",
-       title = "Respuesta ganadora en cada pregunta") + 
+       title = "Respuestas por pregunta - 20 a 25 años") + 
   theme_minimal() +
   facet_grid(. ~ Sintoma)
+
 ```
 
 #----------------------------------------------------------------------------------------------------
 #Primeros Graficos
-#grafico pensamientos suicidas 5 en funcion del sexo 
+#grafico pensamientos suicidas 5 en funcion del sexo . TIRA ERROR!!!!
 ```{r}
 pensamiento_suicida_5 %>% ggplot(aes(x = Sexo, y = Respuestas)) + 
   geom_col(colour = "black",
