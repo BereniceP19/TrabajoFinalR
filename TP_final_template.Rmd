@@ -183,9 +183,8 @@ cor2 <- chart.Correlation(matriz)
 #Matriz de correlacion entre Sensacion de depresion ->> Sensacion de fracaso ->> Pensamientos suicidas y Edad
 ```{r}
 datos_totales_reduccion <- datos_totales %>%
-  filter()
-matriz <- datos_totales[,2-5]
-matriz
+ group_by("Edad", "SensacionDeDepresion", "SensacionDeFracaso", "PensamientosSuicidas")
+datos_totales_reduccion
 cor <- cor(matriz)
 cor2 <- chart.Correlation(matriz)
 
@@ -343,6 +342,8 @@ respuestas_por_pregunta_entre20y25 %>% ggplot + aes(x = Respuestas, y = Cantidad
 ## 1.  Correr Librerias
 
 ```{r}
+rm(list = ls())
+
 library("ggplot2")
 library("qgraph")
 library("bootnet")
@@ -365,8 +366,8 @@ non_suicide <- Base[Base$Suicide_extrem == 0, ]
 data_suicide <- suicide[2:9]
 data_nonsuicide <- non_suicide[2:9]
 
-data_suicide<- na.omit(data_suicide)
-data_nonsuicide<- na.omit(data_nonsuicide)
+data_suicide <- na.omit(data_suicide)
+data_nonsuicide <- na.omit(data_nonsuicide)
 
 
 ```
