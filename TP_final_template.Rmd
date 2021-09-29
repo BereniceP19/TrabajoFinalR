@@ -11,6 +11,8 @@ output:
 ---
 
 ```{r setup, include=FALSE}
+rm(list = ls())
+
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(ggplot2)
@@ -86,7 +88,6 @@ datos_totales_GeneroYEdad <- datos_totales %>%
 datos_totales_GeneroYEdad
   
 ```
-
 #Grafico General. Que respuesta gana en cada pregunta.
 ```{r}
 datos_totales_Tidy_Pregunta9 <- datos_totales_Tidy %>%
@@ -111,7 +112,7 @@ datos_totales_Tidy_Pregunta6 <- datos_totales_Tidy %>%
   arrange(Preguntas) %>% filter(Preguntas == "SensacionDeFracaso") %>%
   group_by(Respuestas) %>% 
   summarise(Cantidad_de_rtas = n()) %>%
-  mutate(Sintoma = "6-AccionarLento")
+  mutate(Sintoma = "6-SensacionDeFracaso")
 
 datos_totales_Tidy_Pregunta5 <- datos_totales_Tidy %>%
   arrange(Preguntas) %>% filter(Preguntas == "PocoApetito") %>%
@@ -154,9 +155,6 @@ respuestas_por_pregunta <- rbind(datos_totales_Tidy_Pregunta1) %>%
   rbind(datos_totales_Tidy_Pregunta9) %>%
   arrange(Sintoma)
 
-fill_para_grafico <- respuestas_por_pregunta[1] %>% group_by(Respuestas) %>% summarise()
-fill_para_grafico
-  
 respuestas_por_pregunta %>% ggplot(aes(x = Respuestas, y = Cantidad_de_rtas)) +
   geom_col(width = 0.5, color = "blue") +
   labs(x = "Respuestas",
@@ -166,13 +164,27 @@ respuestas_por_pregunta %>% ggplot(aes(x = Respuestas, y = Cantidad_de_rtas)) +
   facet_grid(. ~ Sintoma)
   
 ```
-#Solo Respuesta 5 en todas las preguntas
+#MATRIZ DE CORRELACION
+```{r}
+library(ggcorrplot)
+datos_totales <- read.csv("Base4900_on-line.csv", sep = ";", dec = ".", header = TRUE)
+matriz <- datos_totales[,2:5]
+cor <- cor(matriz)
+cor2 <- chart.Correlation(matriz)
+
+```
+
+#Frecuencia Relativa de respuesta 5 en todas las preguntas
 ```{r}
 respuesta_5_en_todas <- datos_totales_Tidy %>% 
   filter(Respuestas == 5) %>%
+  arrange(Preguntas) %>%
   group_by(Preguntas) %>% 
   summarise(Cantidad = n())
-  
+
+respuesta_5_en_todas_prom <- 
+
+ 
   respuesta_5_en_todas %>% ggplot(aes(x = Preguntas, y = Cantidad)) +
   geom_col(width = 0.5, color = "blue", fill = "red") +
   labs(x = "Respuestas",
@@ -180,10 +192,16 @@ respuesta_5_en_todas <- datos_totales_Tidy %>%
        title = "Respuesta ganadora en cada pregunta") + 
   theme_minimal()
 ```
-#Filtro para PensamientosSuicidas ordenados de menor a mayor en funcion de las edades 
+----------------------------------------------------------------------------------------------------
+#Analisis por rango de edad que muestre que los mas jovenes tienen mas problemas de suenio que los adultos
+#Filtro para PensamientosSuicidas respuesta ganadora en distintos rangos de edades
+#entre 10 y 14
 ```{r}
-pensamiento_suicida <- datos_totales_Tidy %>% filter(Preguntas == "PensamientosSuicidas") %>%
+pensamiento_suicida_entre15y20 <- datos_totales_Tidy %>% filter(Edad <= 15 & Edad >= 20) %>%
+  filter(Preguntas == "PensamientosSuicidas") %>%
   group_by(Respuestas) %>% summarise(Cantidad = n())
+
+pensamiento_suicida_entre15y20
 
 pensamiento_suicida %>% ggplot(aes(x = Respuestas, y = Cantidad)) +
   geom_col(width = 0.5, color = "blue") +
@@ -196,7 +214,7 @@ pensamiento_suicida %>% ggplot(aes(x = Respuestas, y = Cantidad)) +
 #Prueba con rango de edad entre 20 y 25 anios
 #Seleccion de poblacion entre 20 y 25 anios de edad que respondieron 5 en Pensamiento Suicida
 ```{r}
-poblacion_entre_20y25 <- datos_totales_Tidy %>% filter(Edad >= 20 & Edad <= 25) 
+poblacion_entre_20y25 <- datos_totales_Tidy %>% filter(Edad >= 30 & Edad <= 40) 
 poblacion_entre_20y25 %>% ggplot(aes(x = Edad, y = Sexo, color = Sexo)) +
   geom_boxplot(outlier.shape = NA) + 
   theme_minimal() +
@@ -239,7 +257,7 @@ poblacion_entre_20y25_Pregunta6 <- poblacion_entre_20y25 %>%
   arrange(Preguntas) %>% filter(Preguntas == "SensacionDeFracaso") %>%
   group_by(Respuestas) %>% 
   summarise(Cantidad_de_rtas = n()) %>%
-  mutate(Sintoma = "6-AccionarLento")
+  mutate(Sintoma = "6-SensacionDeFracaso")
 
 poblacion_entre_20y25_Pregunta5 <- poblacion_entre_20y25 %>%
   arrange(Preguntas) %>% filter(Preguntas == "PocoApetito") %>%
@@ -291,6 +309,20 @@ respuestas_por_pregunta_entre20y25 %>% ggplot(aes(x = Respuestas, y = Cantidad_d
   facet_grid(. ~ Sintoma)
 ```
 
+-----------------------------------------------------------------------------------------
+#FLASHEADA - Filtrado de Datos en Hombres de 21 anios. Y uso de sus respuestas limite 1 y 5 como valores aleatorios  
+
+
+
+
+
+
+
+
+
+
+
+
 #----------------------------------------------------------------------------------------------------
 #Primeros Graficos
 #grafico pensamientos suicidas 5 en funcion del sexo 
@@ -336,8 +368,6 @@ geom_col(colour = "black",
        y = "Cantidad de respuestas",
        title = "Respuesta según edad -Grupo no ideación suicida") + theme_minimal()
 ```
-
-
 
 ## -------------------------------------------------------------------------------
 ## ESTIMACION Y COMPARACIÓN DE LOS MODELOS DE REDES
