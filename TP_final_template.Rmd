@@ -29,6 +29,7 @@ library("ggcorrplot")
 library("PerformanceAnalytics")
 library("cowplot")
 library("ggpubr")
+library("ggstatsplot")
 ```
 
 
@@ -65,7 +66,7 @@ Se cuentan con 44181 observaciones, pero éstas se ven reducidas drásticamente 
 2. Estimación de modelos de redes.
 Para este caso no fue pertinente llevar el dataset a un formato tidy similar al aplicado para los análisis iniciales. Esto es así debido a que cada síntoma depresivo se entiende como una variable diferente, que puede estar asociada con las restantes, pero que refiere a un atributo distintivo de la depresión. Más importante aún, el objetivo de la estimación de modelos de redes es verificar como estas distintas variables correlacionan entre sí, y si éstas correlaciones parciales entre ellas presentan alguna diferencia entre dos grupos independientes de participantes (aquellos con alta ideación suicida vs aquellos que no manifestaron ideación suicida). Por todo ello, en este caso se cuenta con 11 variables (edad, sexo, phq-1 al phq-8, y el item 9 del phq que sirve para generar los grupos extremos en esta variable referida a la ideación suicida). Sin embargo, para simplificar la base solo se consideró la variable de ideación suicida con los grupos ya generados (variable grupos extremos en el item 9 del phq, una variable nominal dicotómica, 0 = grupo no ideación suicida y 1 = grupo con ideación suicida) y los síntomas depresivos restantes (ítems 1 al 8 del PHQ-9, variables enteras con rango del 1 al 5). Esta base se denomina "phq.csv" en los análisis correspondientes, y contiene los datos de las 4909 observaciones. 
 
-##ANALISIS EXPLORATORIO- Reconocimiento de la Poblacion. 
+#ANALISIS EXPLORATORIO- Reconocimiento de la Poblacion. 
 
 ```{r}
 #carga de datos generales
@@ -74,7 +75,7 @@ datos_totales <- read.csv("Base4900_on-line.csv", sep = ";", dec = ".", header =
 
 ```
 
-### Conversión de la tabla a tidy. Las preguntas ahora aparecen en una sola columna llamada "Preguntas", y los valores de respuesta aparecen en una columna asociada llamada "Respuestas". Ahora tendriamos 4 variables (sexo, edad, preguntas, respuestas)
+##Conversión de la tabla a tidy. Las preguntas ahora aparecen en una sola columna llamada "Preguntas", y los valores de respuesta aparecen en una columna asociada llamada "Respuestas". Ahora tendriamos 4 variables (sexo, edad, preguntas, respuestas)
 ```{r}
 datos_totales_Tidy <- datos_totales %>% pivot_longer(c(PocoInteres,SensacionDeDepresion, ProblemasDeSuenio, 
                                      SensacionDeCansancio, PocoApetito, SensacionDeFracaso, 
@@ -96,7 +97,7 @@ datos_totales_Tidy$Sexo <- factor(datos_totales_Tidy$Sexo, labels=c("Femenino", 
 datos_totales_Tidy %>% skim()
 ```
 
-###Grafico de la poblacion general en base a genero y edad
+##Grafico de la poblacion general en base a genero y edad
 ```{r}
 datos_totales_GeneroYEdad <- datos_totales %>%
   ggplot(aes(x = Sexo, y = Edad, color = Sexo)) +
@@ -107,7 +108,7 @@ datos_totales_GeneroYEdad <- datos_totales %>%
 datos_totales_GeneroYEdad
   
 ```
-###Grafico General - Respuestas para cada pregunta
+##Grafico General - Respuestas para cada pregunta
 ```{r}
 datos_totales_Tidy_Pregunta9 <- datos_totales_Tidy %>%
   arrange(Preguntas) %>% filter(Preguntas == "PensamientosSuicidas") %>%
@@ -390,7 +391,7 @@ respuestas_por_pregunta_entre35y40 %>%
   facet_grid(. ~ Sintoma)
 
 ```
-#Respuestas por pregunta -Rango entre 55 y 60 años
+##Respuestas por pregunta -Rango entre 55 y 60 años
 ```{r}
 poblacion_entre_55y60_Pregunta9 <- poblacion_entre55y60 %>%
   arrange(Preguntas) %>% filter(Preguntas == "PensamientosSuicidas") %>%
@@ -613,14 +614,15 @@ respuesta_5_rango50y60 %>% group_by(Preguntas) %>%   summarise(Cantidad = sum(Ca
   geom_text(aes(label = Cantidad),  vjust = 1.5, colour = "white")
 ```
 
-#------------------------------------------------------------------------------------------
 #MATRIZ DE CORRELACION
-#Hay un importante nivel de correlacion entre: 
-#-La sensacion de depresion y el poco interes
-#-La sensacion de depresion y la sensacion de cansancio
-#-La sensacion de depresion y la sensacion de fracaso
-#-La sensacion de fracaso y los pensamientos suicidas
-#Relacion transitiva: Sensacion de depresion ->> Sensacion de fracaso ->> Pensamientos suicidas
+
+##Hay un importante nivel de correlacion entre: 
+##-La sensacion de depresion y el poco interes
+##-La sensacion de depresion y la sensacion de cansancio
+##-La sensacion de depresion y la sensacion de fracaso
+##-La sensacion de fracaso y los pensamientos suicidas
+
+##Relacion transitiva: Sensacion de depresion ->> Sensacion de fracaso ->> Pensamientos suicidas
 
 ```{r}
 rm(list = ls())
@@ -633,7 +635,7 @@ cor2 <- chart.Correlation(matriz)
 
 ```
 
-#Matriz de correlacion entre Sensacion de depresion ->> Sensacion de fracaso ->> Pensamientos suicidas y Edad
+#Matriz de correlacion entre Sensacion de depresion - Foco en las preguntas que encontramos más relevantes >> Sensacion de fracaso ->> Pensamientos suicidas y Edad
 ```{r}
 #FILTRAR LAS COLUMNAS DEPRESION, FRACASO Y SUICIDIO Y CORRELACIONAR CON LA EDAD
 datos_totales_reduccion <- read.csv("Base4900_v2.csv", sep = ";", dec = ".", header = TRUE)
@@ -643,129 +645,112 @@ cor2 <- chart.Correlation(matriz2)
 
 ```
 
-#------------------------------------------------------------------------------------------
-#PRUEBA t Y DATOS DESCRIPTIVOS
+#PRUEBA T Y DATOS DESCRIPTIVOS
 
 ```{r}
 
-#Carga y preprocesado
+# Carga y preprocesado
 Base <- read.csv("phq.csv", sep = ";", dec = ".", header = TRUE)
 
 
-datos_Tidy <- Base %>% 
-  pivot_longer(c(phq1,phq2,phq3,phq4,phq5,phq6,phq7,phq8),names_to = "Preguntas", values_to = "Respuestas") %>% 
+Base2 <- Base %>% 
+ mutate(Depresion = phq1+phq2+phq3+phq4+phq5+phq6+phq7+phq8) %>% 
+  mutate(Suicide_extrem = as.factor(Suicide_extrem))%>%
    drop_na()
 
-#Datos descriptivos
 
 
-datos_Tidy %>% 
-  group_by(Suicide_extrem) %>% 
-  summarise(mean(Respuestas,  na.rm = TRUE))
+# Descriptivos
+
+Base2 %>%
+group_by(Suicide_extrem) %>% 
+skim(Depresion) 
 
 
-
-library(skimr)
-
-datos_Tidy %>%
-group_by(Suicide_extrem, Preguntas) %>% 
-skim() 
-
-#install.packages("ggstatsplot")
-library(ggstatsplot)
-
-ggbetweenstats(
-  data = datos_Tidy,
-  x = Suicide_extrem,
-  y = Respuestas,
-  title = "Prueba")
-
-
-#Graficas para el total de las preguntas sin diferenciar
-datos_Tidy %>%
- mutate(Suicide_extrem = as.factor(Suicide_extrem)) %>% 
-ggplot(aes(x = Respuestas, fill = Suicide_extrem)) +
+Base2 %>%
+ggplot(aes(x = Depresion, fill = Suicide_extrem)) +
     geom_histogram() +
   facet_grid(Suicide_extrem ~ .)  
 
-datos_Tidy %>%
-   mutate(Suicide_extrem = as.factor(Suicide_extrem)) %>% 
-ggplot(aes(x = Respuestas,
+Base2 %>%
+ggplot(aes(x = Depresion,
            color = Suicide_extrem,
            fill = Suicide_extrem)) +
   facet_grid(Suicide_extrem ~ .)  +
   geom_density() 
 
-datos_Tidy %>%
-   mutate(Suicide_extrem = as.factor(Suicide_extrem)) %>% 
-ggplot(aes(x = Respuestas,
+Base2 %>%
+ggplot(aes(x = Depresion,
            color = Suicide_extrem,
             fill = Suicide_extrem)) +
     geom_density() 
 
-datos_Tidy
 
-
-datos_Tidy %>%
-   mutate(Suicide_extrem = as.factor(Suicide_extrem)) %>% 
+Base2 %>%
   ggplot(aes(x = Suicide_extrem,
-               y = Respuestas, 
-               color = Suicide_extrem)) +
+               y = Depresion, 
+               fill = Suicide_extrem)) +
   geom_boxplot()
 
 
-datos_Tidy %>%
-   mutate(Suicide_extrem = as.factor(Suicide_extrem)) %>% 
-  ggplot(aes(x = Suicide_extrem,
-               y = Respuestas, 
-               color = Suicide_extrem)) +
+Base2 %>%
+    ggplot(aes(x = Suicide_extrem,
+               y = Depresion, 
+               fill= Suicide_extrem)) +
   geom_violin()
+```
+
+#INFERENCIALES- PRUEBA T
+```{r}
+
+Base2 %>% 
+group_by(Suicide_extrem)  %>% 
+summarise(mean(Depresion))
 
 
-#Graficas diferenciando las preguntas
-
-datos_Tidy %>%
- mutate(Suicide_extrem = as.factor(Suicide_extrem)) %>% 
-ggplot(aes(x = Respuestas,
-          fill = Suicide_extrem)) +
-  facet_grid(Preguntas ~ .)+
-  geom_histogram() 
+t.test(Base2$Depresion~Base2$Suicide_extrem)
 
 
+ggbetweenstats(
+  data = Base2,
+  x = Suicide_extrem,
+  y = Depresion,
+  title = "Prueba t")
+```
 
-datos_Tidy %>%
-   mutate(Suicide_extrem = as.factor(Suicide_extrem)) %>% 
-ggplot(aes(x = Suicide_extrem,
-             color = Suicide_extrem)) +
-  facet_grid(Suicide_extrem ~ .)  +
-facet_grid(Preguntas ~ .)+
-  geom_density()
-
-datos_Tidy %>%
-   mutate(Suicide_extrem = as.factor(Suicide_extrem)) %>% 
-  ggplot(aes(x = Suicide_extrem,
-               y = Respuestas, 
-              color = Suicide_extrem)) +
-    facet_grid(Suicide_extrem ~ .)  +
-facet_grid(Preguntas ~ .)+
-  geom_boxplot()
+#MODELO LINEAL
 
 
-datos_Tidy %>%
-   mutate(Suicide_extrem = as.factor(Suicide_extrem)) %>% 
-  ggplot(aes(x = Suicide_extrem,
-               y = Respuestas, 
-               color = Suicide_extrem)) +
-    facet_grid(Suicide_extrem ~ .)  +
-facet_grid(Preguntas ~ .)+
-  geom_violin()
+```{r}
+modelo <- lm(Base2$Depresion ~ Base2$Suicide_extrem)
+summary(modelo)
+
 
 ```
 
+#MODELO LINEAL CON LA EDAD
+```{r}
+Base <- read.csv("Base4900_on-line.csv", sep = ";", dec = ".", header = TRUE)
+
+Base_total2 <- Base %>% 
+  mutate(Depresion = PocoInteres+SensacionDeDepresion+ProblemasDeSuenio+SensacionDeCansancio+PocoApetito+SensacionDeFracaso+ProblemasDeConcentracion+AccionarLento+PensamientosSuicidas) %>% 
+  drop_na()
 
 
-## -------------------------------------------------------------------------------
-## ESTIMACION Y COMPARACIÓN DE LOS MODELOS DE REDES
+modelo <- lm(Base_total2$Depresion ~ Base_total2$Edad)
+summary(modelo)
+
+
+Base_total2 %>%
+  ggplot(aes(x = Depresion,
+             y = Edad)) +
+  geom_point() + 
+  geom_smooth(se = FALSE,
+              method = lm)
+```
+
+
+# ESTIMACION Y COMPARACIÓN DE LOS MODELOS DE REDES 
 
 ## 1.  Bases de Datos modificada. Se agrega columna Suicide-Extrem ya categorizada.
 
@@ -785,7 +770,7 @@ data_nonsuicide <- na.omit(data_nonsuicide)
 
 ```
 
-## 3.  Estimacion de Redes 
+## 2.  Estimacion de Redes 
 
 
 ```{r}
@@ -806,7 +791,7 @@ plot(Network_suicide, layout = L, title = "Suicide", maximum = Max)
 plot(Network_non_suicide, layout = L, title = "Non Suicide", maximum = Max)
 ```
 
-## 4. Test de Comparación de Redes
+## 3. Test de Comparación de Redes
 
 
 ```{r}
