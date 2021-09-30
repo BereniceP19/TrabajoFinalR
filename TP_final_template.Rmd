@@ -36,7 +36,7 @@ El trabajo se realizará en base a datos sobre sintomatología depresiva a parti
 
 -Analisis exploratorio general
 
--Matriz de correlacion
+-Matriz de correlación
 
 -Prueba t
 
@@ -182,9 +182,7 @@ respuestas_por_pregunta %>% ggplot + aes(x = Respuestas, y = Cantidad_de_rtas, f
   
 ```
 #---------------------------------------------------------------------------------------------
-#RESPUESTA GANADORA EN CADA PREGUTNA PARA DISTINTOS RANGOS DE EDADES
-#entre 15 y 20 anios
-#Cantidad por Genero. rango entre 15 y 20
+#Cantidad por Genero. Rango entre 15 y 20
 ```{r}
 poblacion_entre15y20 <- datos_totales_Tidy %>% filter(Edad >= 15 & Edad <= 20)
 poblacion_entre35y40 <- datos_totales_Tidy %>% filter(Edad >= 35 & Edad <= 40)
@@ -202,7 +200,6 @@ numero_por_genero_entre15y20 %>% ggplot(aes(x = Sexo, y = Cantidad)) +
        title = "Población según género- 20 a 25 años") +
   theme_minimal()
 ```
-#entre 35 y 40 anios
 #Cantidad por Genero. rango entre 35 y 40
 ```{r}
 numero_por_genero_entre35y40 <- poblacion_entre35y40 %>% 
@@ -217,8 +214,7 @@ numero_por_genero_entre35y40 %>% ggplot(aes(x = Sexo, y = Cantidad)) +
        title = "Población según género- 35 a 40 años") +
   theme_minimal()
 ```
-#entre 15 y 20 anios
-#Cantidad por Genero. rango entre 55 y 60
+#Cantidad por género. Rango entre 55 y 60
 ```{r}
 numero_por_genero_entre55y60 <- poblacion_entre55y60 %>% 
   group_by(Sexo) %>% 
@@ -232,7 +228,7 @@ numero_por_genero_entre55y60 %>% ggplot(aes(x = Sexo, y = Cantidad)) +
        title = "Población según género- 55 a 60 años") +
   theme_minimal()
 ```
-#grafico respuesta ganadora en este rango de edades entre 15 y 20
+#Grafico respuesta ganadora -Rango entre 15 y 20 años
 ```{r}
 poblacion_entre_15y20_Pregunta9 <- poblacion_entre15y20 %>%
   arrange(Preguntas) %>% filter(Preguntas == "PensamientosSuicidas") %>%
@@ -309,7 +305,7 @@ respuestas_por_pregunta_entre15y20 %>%
   facet_grid(. ~ Sintoma)
 
 ```
-#grafico respuesta ganadora en este rango de edades entre 35 y 40
+#Grafico respuesta ganadora -Rango entre 35 y 40 años
 ```{r}
 poblacion_entre_35y40_Pregunta9 <- poblacion_entre35y40 %>%
   arrange(Preguntas) %>% filter(Preguntas == "PensamientosSuicidas") %>%
@@ -386,7 +382,7 @@ respuestas_por_pregunta_entre35y40 %>%
   facet_grid(. ~ Sintoma)
 
 ```
-#grafico respuesta ganadora en este rango de edades entre 55 y 60
+#Grafico respuesta ganadora -Rango entre 55 y 60 años
 ```{r}
 poblacion_entre_55y60_Pregunta9 <- poblacion_entre55y60 %>%
   arrange(Preguntas) %>% filter(Preguntas == "PensamientosSuicidas") %>%
@@ -489,7 +485,7 @@ respuesta_5_en_todas <- datos_totales_Tidy %>%
 
 respuesta_5_en_todas %>% ggplot(aes(x = Sexo, y = Cantidad, color = Sexo, fill = Sexo)) +
   geom_dots() +
-  labs(title = "Poblacion segun genero total") +
+  labs(title = "Poblacion total según género- Ideación suicida") +
   theme_minimal()
 ```
 #Frecuencia Relativa de respuesta 5 en todas las preguntas
@@ -498,10 +494,14 @@ respuesta_5_en_todas <- datos_totales_Tidy %>%
   filter(Respuestas == 5) %>%
   arrange(Preguntas) %>%
   group_by(Preguntas) %>% 
-  summarise(Cantidad = n()) #falta el calculo de freq relativa... 
+  summarise(Cantidad = n())
 respuesta_5_en_todas$Preguntas <- factor(respuesta_5_en_todas$Preguntas, levels = c("PocoInteres", "SensacionDeDepresion","ProblemasDeSuenio","SensacionDeCansancio", "PocoApetito", "SensacionDeFracaso", "ProblemasDeConcentracion", "AccionarLento", "PensamientosSuicidas")) 
 
-respuesta_5_en_todas %>% group_by(Preguntas) %>%   summarise(Cantidad = sum(Cantidad)) %>%   ggplot(aes(x = Preguntas, y=Cantidad, fill=Preguntas)) + geom_col() + scale_x_discrete(labels = c('1','2','3', '4', '5', '6', '7', '8', '9'))
+respuesta_5_en_todas %>% group_by(Preguntas) %>%   summarise(Cantidad = sum(Cantidad)) %>%   ggplot(aes(x = Preguntas, y=Cantidad, fill=Preguntas)) +  ggtitle("Respuesta máxima en todas las preguntas-General") +
+geom_col() + scale_x_discrete(labels = c('1','2','3', '4', '5', '6', '7', '8', '9')) +
+  scale_fill_discrete(labels = c('1- Poco Interés','2- Sensación de Depresión','3- Problemas de Sueño', '4- Sensación de Cansancio', '5- Poco Apetito', '6- Sensación de Fracaso', '7- Problemas de Concentración', '8- Accionar Lento', '9- Pensamientos Suicidas')) +
+  geom_text(aes(label = Cantidad),  vjust = 1.5, colour = "white")
+
 ```
 
 #Cantidad en funcion del genero para el rango entre 10 y 20 anios
@@ -522,12 +522,16 @@ respuesta_5_rango10y20 <- datos_totales_Tidy %>%
   filter(Respuestas == 5) %>%
   arrange(Preguntas) %>%
   group_by(Preguntas) %>% 
-  summarise(Cantidad = n()) #falta el calculo de freq relativa... 
+  summarise(Cantidad = n())
 respuesta_5_rango10y20
 
 respuesta_5_rango10y20$Preguntas <- factor(respuesta_5_rango10y20$Preguntas, levels = c("PocoInteres", "SensacionDeDepresion","ProblemasDeSuenio","SensacionDeCansancio", "PocoApetito", "SensacionDeFracaso", "ProblemasDeConcentracion", "AccionarLento", "PensamientosSuicidas")) 
 
-respuesta_5_rango10y20 %>% group_by(Preguntas) %>%   summarise(Cantidad = sum(Cantidad)) %>%   ggplot(aes(x = Preguntas, y=Cantidad, fill=Preguntas)) + geom_col() + scale_x_discrete(labels = c('1','2','3', '4', '5', '6', '7', '8', '9'))
+respuesta_5_rango10y20 %>% group_by(Preguntas) %>%   summarise(Cantidad = sum(Cantidad)) %>%   ggplot(aes(x = Preguntas, y=Cantidad, fill=Preguntas)) +
+  ggtitle("Respuesta máxima en todas las preguntas- Rango entre 10 y 20 años") +
+  geom_col() + scale_x_discrete(labels = c('1','2','3', '4', '5', '6', '7', '8', '9')) +
+  scale_fill_discrete(labels = c('1- Poco Interés','2- Sensación de Depresión','3- Problemas de Sueño', '4- Sensación de Cansancio', '5- Poco Apetito', '6- Sensación de Fracaso', '7- Problemas de Concentración', '8- Accionar Lento', '9- Pensamientos Suicidas')) +
+  geom_text(aes(label = Cantidad),  vjust = 1.5, colour = "white")
 ```
 ##Cantidad en funcion del genero para el rango entre 30 y 40 anios
 ```{r}
@@ -554,7 +558,10 @@ respuesta_5_rango30y40
 respuesta_5_rango30y40$Preguntas <- factor(respuesta_5_rango30y40$Preguntas, levels = c("PocoInteres", "SensacionDeDepresion","ProblemasDeSuenio","SensacionDeCansancio", "PocoApetito", "SensacionDeFracaso", "ProblemasDeConcentracion", "AccionarLento", "PensamientosSuicidas")) 
 
   
-respuesta_5_rango30y40 %>% group_by(Preguntas) %>%   summarise(Cantidad = sum(Cantidad)) %>%   ggplot(aes(x = Preguntas, y=Cantidad, fill=Preguntas)) + geom_col() + scale_x_discrete(labels = c('1','2','3', '4', '5', '6', '7', '8', '9'))
+respuesta_5_rango30y40 %>% group_by(Preguntas) %>%   summarise(Cantidad = sum(Cantidad)) %>%   ggplot(aes(x = Preguntas, y=Cantidad, fill=Preguntas)) + ggtitle("Respuesta máxima en todas las preguntas- Rango entre 30 y 40 años") +
+  geom_col() + scale_x_discrete(labels = c('1','2','3', '4', '5', '6', '7', '8', '9')) +
+  scale_fill_discrete(labels = c('1- Poco Interés','2- Sensación de Depresión','3- Problemas de Sueño', '4- Sensación de Cansancio', '5- Poco Apetito', '6- Sensación de Fracaso', '7- Problemas de Concentración', '8- Accionar Lento', '9- Pensamientos Suicidas')) +
+  geom_text(aes(label = Cantidad),  vjust = 1.5, colour = "white")
 ```
 ##Cantidad en funcion del genero para el rango entre 50 y 60 anios
 ```{r}
@@ -581,7 +588,10 @@ respuesta_5_rango50y60
 respuesta_5_rango50y60$Preguntas <- factor(respuesta_5_rango50y60$Preguntas, levels = c("PocoInteres", "SensacionDeDepresion","ProblemasDeSuenio","SensacionDeCansancio", "PocoApetito", "SensacionDeFracaso", "ProblemasDeConcentracion", "AccionarLento", "PensamientosSuicidas")) 
 
   
-respuesta_5_rango50y60 %>% group_by(Preguntas) %>%   summarise(Cantidad = sum(Cantidad)) %>%   ggplot(aes(x = Preguntas, y=Cantidad, fill=Preguntas)) + geom_col() + scale_x_discrete(labels = c('1','2','3', '4', '5', '6', '7', '8', '9'))
+respuesta_5_rango50y60 %>% group_by(Preguntas) %>%   summarise(Cantidad = sum(Cantidad)) %>%   ggplot(aes(x = Preguntas, y=Cantidad, fill=Preguntas)) + ggtitle("Respuesta máxima en todas las preguntas- Rango entre 50 y 60 años") +
+  geom_col() + scale_x_discrete(labels = c('1','2','3', '4', '5', '6', '7', '8', '9')) +
+  scale_fill_discrete(labels = c('1- Poco Interés','2- Sensación de Depresión','3- Problemas de Sueño', '4- Sensación de Cansancio', '5- Poco Apetito', '6- Sensación de Fracaso', '7- Problemas de Concentración', '8- Accionar Lento', '9- Pensamientos Suicidas')) +
+  geom_text(aes(label = Cantidad),  vjust = 1.5, colour = "white")
 ```
 
 #------------------------------------------------------------------------------------------
