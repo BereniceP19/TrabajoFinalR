@@ -26,6 +26,7 @@ library("NetworkComparisonTest")
 library("EstimateGroupNetwork")
 library("dplyr")
 library("ggcorrplot")
+library("PerformanceAnalytics")
 ```
 ##------------------------------------------------------------------------------
 ## Resumen
