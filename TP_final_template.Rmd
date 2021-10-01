@@ -603,6 +603,7 @@ respuesta_5_rango50y60 %>% group_by(Preguntas) %>%   summarise(Cantidad = sum(Ca
 #-La sensacion de depresion y la sensacion de fracaso
 #-La sensacion de fracaso y los pensamientos suicidas
 #Relacion transitiva: Sensacion de depresion ->> Sensacion de fracaso ->> Pensamientos suicidas
+ la diferencia es que este análisis es bivariado mientras que el de redes es multivariado.donde se hace una estimación de redes no direccionales a partir de correlaciones parciales, básicamente, permite estimar en un modelo único las correlaciones parciales entre un conjunto de indicadores dados
 
 ```{r}
 rm(list = ls())
@@ -626,7 +627,9 @@ cor2 <- chart.Correlation(matriz2)
 ```
 
 #------------------------------------------------------------------------------------------
-#PRUEBA t Y DATOS DESCRIPTIVOS
+#INTENTO DE PRUEBA t Y DATOS DESCRIPTIVOS
+Se agrega columna Suicide-Extrem ya categorizada en 0 para suicida y 1 no suicida.
+para muestras independientes donde la variable suicidio como grupo (sí vs no), y las otras preguntas como las variables a comparar
 ```{r}
 rm(list = ls())
 #Carga y preprocesado
@@ -739,8 +742,8 @@ datos_Tidy %>%
 
 ## -------------------------------------------------------------------------------
 ## ESTIMACION Y COMPARACIÓN DE LOS MODELOS DE REDES
-
-## 1.  Bases de Datos modificada. Se agrega columna Suicide-Extrem ya categorizada.
+permite estimar en un modelo único las correlaciones parciales entre un conjunto de indicadores dados
+## 1.  Bases de Datos modificada. 
 
 ```{r}
 Base <- read.csv("phq.csv", sep = ";", dec = ".", header = TRUE)
@@ -755,11 +758,9 @@ data_nonsuicide <- non_suicide[2:9]
 data_suicide <- na.omit(data_suicide)
 data_nonsuicide <- na.omit(data_nonsuicide)
 
-
 ```
 
 ## 3.  Estimacion de Redes 
-
 
 ```{r}
 Network_suicide <- estimateNetwork(data_suicide,
@@ -780,7 +781,6 @@ plot(Network_non_suicide, layout = L, title = "Non Suicide", maximum = Max)
 ```
 
 ## 4. Test de Comparación de Redes
-
 
 ```{r}
 set.seed(1)
