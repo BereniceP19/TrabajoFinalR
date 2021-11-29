@@ -1,0 +1,663 @@
+---
+title: "Sintomatología depresiva en personas con Ideación Suicida: Un análisis de redes"
+author: "Pablo Ezequiel Flores Kanter, Berenice Piceda, Sol Gomez"
+date: "29/11/2021"
+output:
+  html_document: 
+    code_folding: show
+    theme: paper
+    highlight: pygments
+    toc: true
+---
+
+```{r setup, include=FALSE}
+rm(list = ls())
+knitr::opts_chunk$set(echo = TRUE)
+library("tidyverse")
+library("magrittr")
+library("skimr")
+library("ggdist")
+library("ggplot2")
+library("qgraph")
+library("bootnet")
+library("psychonetrics")
+library("NetworkComparisonTest")
+library("EstimateGroupNetwork")
+library("dplyr")
+library("ggcorrplot")
+library("PerformanceAnalytics")
+library("cowplot")
+library("ggpubr")
+library("ggstatsplot")
+library("GGally")
+```
+
+
+# RESUMEN
+## 1. Descripción general de la muestra y datos recolectados.
+El trabajo se realizará en base a datos sobre sintomatología depresiva a partir de una muestra online de 4909 sujetos. Los datos de los distintos síntomas depresivos han sido obtenidos a partir de la aplicación de la escala Patient Health Questionnaire 9 (PHQ-9), un instrumento estandarizado de autoreporte que indaga sobre nueve síntomas depresivos diferentes. Para ello el instrumento se basa en los criterios diagnóstico para el Trastorno Depresivo Mayor que establece el Manual Diagnóstico y Estadístico de Trastornos Mentales en su quinta edición (DSM-V). La escala contempla la presencia de los siguientes síntomas en las últimas dos semanas: 1) poco interés; 2) sensación de depresión; 3) problemas de sueño; 4) sensación de cansancio; 5) poco apetito; 6) sensación de fracaso; 7) problemas de concentración; 8) accionar lento; y 9) pensamientos suicidas. Los ítems se responden en una escala de Likert desde 1 (nunca) a 5 (casi todos los días).  
+
+El principal objetivo de éste trabajo es analizar cómo correlacionan los distíntos síntomas depresivos mencionados (sintomas del 1 (poco interés) al 8 (accionar lento) en función de la variable pensamientos suicidas (que se evalúa a partir del síntoma 9 de la escala PHQ-9). Para esto se seguiran los siguientes pasos de análisis: a) Se aplicarán análisis exploratorios de los datos con el objetivo principal de identificar casos ausentes y atípicos, así como describir la distribución de las puntuaciones y diagramar correlaciones bivariadas; y b) se estimarán modelos de redes denominadas Markov random field o redes no-direccionales (undirected network/undirected graphical model) en dos grupos extremos de participantes distribuidos en base al item 9 de ideación suicida, a los fines de comparar las redes entre los grupos extremos de interés.
+
+
+## 2. Análisis descriptivos.
+El principal objetivo de éste trabajo es analizar el modo en el que se correlacionan los distíntos síntomas depresivos mencionados (sintomas del 1 (poco interés) al 8 (accionar lento)) en función de la variable pensamientos suicidas (que se evalúa a partir del síntoma 9 de la escala PHQ-9), así como la correlación del nivel de depresión general con la edad de los participantes.Estos análisis se realizan en función de la hipótesis principal del trabajo, la cual se basa en que existe una relación entre los síntomas, las variables y la edad.
+
+### -Analisis exploratorio general: 
+Se analiza la poblacion de manera general en funcion del género y de la edad, contemplando tres grandes grupos o rangos (adolescentes, adultos jóvenes, adultos mayores). Se analiza cómo respondieron dichas categorías a cada una de las preguntas y sus respectivos niveles de respuesta.
+
+### -Matriz de correlación: 
+Se analiza la correlación entre cada una de las pregruntas respecto de las otras y la correlación entre algunas de las preguntas y la edad.
+
+### -Prueba t: 
+Separación de los participantes en dos grupos (Ideación suicida (Rta máxima en la escala de Likert a la pregunta 9) y no ideación suicida (Rta = 1 a la pregunta 9)) y análisis respecto al resto de las preguntas. 
+
+### -Modelo lineal: 
+Analisis en función del nivel de depresión calculado en base al total de las preguntas y la relación con la edad de los participantes.
+
+### -Estimación de modelos de redes (Bonus Track):
+se estimarán modelos de redes denominadas Markov random field o redes no-direccionales (undirected network/undirected graphical model) en dos grupos extremos de participantes distribuidos en base al item 9 de ideación suicida, a los fines de comparar las redes entre los grupos extremos de interés. El objetivo de la estimación de modelos de redes es verificar como estas distintas variables correlacionan entre sí, aplicando para esto correlaciones parciales (correlaciones entre pares de ítems controlando por el resto de los ítems o indicadores considerados).
+
+## 3. Estructura de los datos
+### 1. Análisis iniciales exploratorios: descriptivos y correlacionales.
+
+Para el caso de los análisis iniciales descriptivos y de correlación con variables sociodemográficas de sexo y edad se trasnformó levemente la tabla:
+A continuación se describen brevemente los datos y su estructura para este objetivo inicial de análisis (tidy data). 
+
+- Cuántas variables tienen? 
+Se tienen cuatro variables, las cuales son : Sexo, Edad, Preguntas (sintomatología, items del PHQ-9) y  Respuesta (las opciones de respuestas en escala likert, es decir, con qué frecuencia experimentan los síntomas).
+
+- De qué tipo es cada variable? 
+La variable "Sexo" puede ser int o boolean; "Edad" no tiene rango (int), "Preguntas" es un char y "Respuestas" es un int. Las variables "Preguntas" y "Respuestas" tienen un rango de 1 a 5.
+
+- Cuántas observaciones? 
+Se cuentan con 44181 observaciones, pero éstas se ven reducidas drásticamente al filtrarse los grupos principales, es decir, aquellos que estarían compuestos por las respuestas “1” (no ideación suicida) y “5” (ideación suicida). Es a éstas observaciones que se aplicará el análisis en base a la edad y al sexo.
+
+### 2. Estimación de modelos de redes.
+Para este caso no fue pertinente llevar el dataset a un formato tidy similar al aplicado para los análisis iniciales. Esto es así debido a que cada síntoma depresivo se entiende como una variable diferente, que puede estar asociada con las restantes, pero que refiere a un atributo distintivo de la depresión. Más importante aún, el objetivo de la estimación de modelos de redes es verificar como estas distintas variables correlacionan entre sí, y si éstas correlaciones parciales entre ellas presentan alguna diferencia entre dos grupos independientes de participantes (aquellos con alta ideación suicida vs aquellos que no manifestaron ideación suicida). Por todo ello, en este caso se cuenta con 11 variables (edad, sexo, phq-1 al phq-8, y el item 9 del phq que sirve para generar los grupos extremos en esta variable referida a la ideación suicida). Sin embargo, para simplificar la base solo se consideró la variable de ideación suicida con los grupos ya generados (variable grupos extremos en el item 9 del phq, una variable nominal dicotómica, 0 = grupo no ideación suicida y 1 = grupo con ideación suicida) y los síntomas depresivos restantes (ítems 1 al 8 del PHQ-9, variables enteras con rango del 1 al 5). Esta base se denomina "phq.csv" en los análisis correspondientes, y contiene los datos de las 4909 observaciones. 
+
+
+# ANÁLISIS EXPLORATORIO
+### Reconocimiento de la Poblacion. 
+```{r}
+#carga de datos generales
+datos_totales <- read.csv("Datos_Totales.csv", sep = ";", dec = ".", header = TRUE)
+
+```
+
+Conversión de la tabla a tidy. Las preguntas aparecen en una sola columna llamada "Preguntas", y los valores de respuesta aparecen en una columna asociada llamada "Respuestas". Tenemos 4 variables finales (sexo, Edad, Preguntas, Respuestas)
+```{r}
+datos_totales_Tidy <- datos_totales %>% pivot_longer(c(PocoInteres,SensacionDeDepresion, ProblemasDeSuenio, 
+                                     SensacionDeCansancio, PocoApetito, SensacionDeFracaso, 
+                                     ProblemasDeConcentracion, AccionarLento, PensamientosSuicidas),
+                                   names_to = "Preguntas", values_to = "Respuestas") %>% drop_na()
+
+#Renombra variable Sexo a "Femenino" y "Masculino"
+datos_totales$Sexo <- factor(datos_totales$Sexo, labels=c("Femenino", "Masculino"))
+```
+Resumen General de los datos originales
+```{r}
+datos_totales %>% skim()
+```
+
+Resumen General de los datos en formato tidy
+```{r}
+datos_totales_Tidy$Sexo <- factor(datos_totales_Tidy$Sexo, labels=c("Femenino", "Masculino"))
+datos_totales_Tidy %>% skim()
+```
+## Grafico de la poblacion general en base a genero y edad
+
+La mayoría de la población se corresponde con la Masculina alrededor de 21 años de edad.
+```{r}
+datos_totales_GeneroYEdad <- datos_totales %>%
+  ggplot(aes(x = Sexo, y = Edad, color = Sexo)) +
+  geom_boxplot(outlier.shape = NA, color = "black", width= 2) +
+  geom_jitter(width = 0.4, alpha = 0.3) + theme_minimal() +
+  stat_halfeye(color = "black", fill = "orange", alpha = 0.4) 
+datos_totales_GeneroYEdad
+```  
+
+## Gráfico de la población general en cantidad por Sexo.
+```{r}
+poblacion_por_genero <- datos_totales %>% 
+  group_by(Sexo) %>% 
+  summarise(Cantidad = n())
+poblacion_por_genero %>% ggplot(aes(x = Sexo, y = Cantidad, fill = Sexo)) +
+  geom_col(width = 0.5, color = "black") +
+  labs(x = "Sexo",
+       y = "Cantidad",
+       title = "Población Total - Sexo") +
+  theme_minimal()
+  
+```
+
+## Grafico General - Respuestas para cada pregunta por cada nivel de respuesta.
+Se puede observar que, si bien, en la pregunta 9 (Pensamientos suicidas) predomina la respuesta 1. En preguntas correspondientes a otros síntomas (preguntas entre 2 y 6) predomina la respuesta 5
+```{r}
+datos_totales_Tidy_Pregunta9 <- datos_totales_Tidy %>%
+  arrange(Preguntas) %>% filter(Preguntas == "PensamientosSuicidas") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "9-Pensamientos Suicidas")
+datos_totales_Tidy_Pregunta8 <- datos_totales_Tidy %>%
+  arrange(Preguntas) %>% filter(Preguntas == "AccionarLento") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "8-Accionar Lento")
+datos_totales_Tidy_Pregunta7 <- datos_totales_Tidy %>%
+  arrange(Preguntas) %>% filter(Preguntas == "ProblemasDeConcentracion") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "7-Problemas de Concentración")
+datos_totales_Tidy_Pregunta6 <- datos_totales_Tidy %>%
+  arrange(Preguntas) %>% filter(Preguntas == "SensacionDeFracaso") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "6-Sensación de Fracaso")
+datos_totales_Tidy_Pregunta5 <- datos_totales_Tidy %>%
+  arrange(Preguntas) %>% filter(Preguntas == "PocoApetito") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "5-Poco Apetito")
+datos_totales_Tidy_Pregunta4 <- datos_totales_Tidy %>%
+  arrange(Preguntas) %>% filter(Preguntas == "SensacionDeCansancio") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "4-Sensación de Cansancio")
+datos_totales_Tidy_Pregunta3 <- datos_totales_Tidy %>%
+  arrange(Preguntas) %>% filter(Preguntas == "ProblemasDeSuenio") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "3-Problemas de Sueño")
+datos_totales_Tidy_Pregunta2 <- datos_totales_Tidy %>%
+  arrange(Preguntas) %>% filter(Preguntas == "SensacionDeDepresion") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "2-Sensación de Depresion")
+datos_totales_Tidy_Pregunta1 <- datos_totales_Tidy %>% 
+  arrange(Preguntas) %>% filter(Preguntas == "PocoInteres") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "1-Poco Interés")
+respuestas_por_pregunta <- rbind(datos_totales_Tidy_Pregunta1) %>% 
+  rbind(datos_totales_Tidy_Pregunta2) %>%
+  rbind(datos_totales_Tidy_Pregunta3) %>%
+  rbind(datos_totales_Tidy_Pregunta4) %>%
+  rbind(datos_totales_Tidy_Pregunta5) %>%
+  rbind(datos_totales_Tidy_Pregunta6) %>%
+  rbind(datos_totales_Tidy_Pregunta7) %>%
+  rbind(datos_totales_Tidy_Pregunta8) %>%
+  rbind(datos_totales_Tidy_Pregunta9) %>%
+  arrange(Sintoma)
+respuestas_por_pregunta %>% ggplot + aes(x = Respuestas, y = Cantidad_de_rtas, fill = Sintoma) +
+  geom_col(width = 0.5, position = position_dodge(2)) +
+  labs(x = "Respuestas",
+       y = "Cantidad de Respuestas",
+       title = "Respuestas para cada pregunta- General") + 
+  theme_minimal() +
+  facet_grid(. ~ Sintoma)
+  
+```
+
+## Gráficos de la población según Sexo para tres grupos etarios.
+### Rangos: 15-20 años, 35-40 años, y 55-60 años.
+Se observa que a medida que aumenta el rango de edad también se va equilibrando la diferencia de Sexo entre los participantes.
+```{r}
+poblacion_entre15y20 <- datos_totales %>% filter(Edad >= 15 & Edad <= 20)
+poblacion_entre35y40 <- datos_totales %>% filter(Edad >= 35 & Edad <= 40)
+poblacion_entre55y60 <- datos_totales %>% filter(Edad >= 55 & Edad <= 60)
+```
+### (Prueba a revisar para unir todos los gráficos, falta arreglar)
+### Rango entre 15 y 20 años.
+```{r}
+numero_por_genero_entre15y20 <- poblacion_entre15y20 %>% 
+  group_by(Sexo) %>% 
+  summarise(Cantidad = n())
+entre15y20 <- numero_por_genero_entre15y20 %>% ggplot(aes(x = Sexo, y = Cantidad/9)) + 
+  geom_col(colour = "black",
+           fill = "#1380A1",
+           width = 0.5) + 
+  labs(x = "Sexo",
+       y = "",
+       title = "Población según género- 15 a 20 años") +
+  theme_minimal()
+
+### Rango entre 35 y 40 años.
+
+numero_por_genero_entre35y40 <- poblacion_entre35y40 %>% 
+  group_by(Sexo) %>% 
+  summarise(Cantidad = n())
+entre35y40 <- numero_por_genero_entre35y40 %>% ggplot(aes(x = Sexo, y = Cantidad/9)) + 
+  geom_col(colour = "black",
+           fill = "#1380A1",
+           width = 0.5) + 
+  labs(x = "Sexo",
+       y = "",
+       title = "Población según género- 35 a 40 años") +
+  theme_minimal()
+### Rango entre 55 y 60 años
+
+numero_por_genero_entre55y60 <- poblacion_entre55y60 %>% 
+  group_by(Sexo) %>% 
+  summarise(Cantidad = n())
+
+entre55y60 <- numero_por_genero_entre55y60 %>% ggplot(aes(x = Sexo, y = Cantidad/9)) + 
+  geom_col(colour = "black",
+           fill = "#1380A1",
+           width = 0.5) + 
+  labs(x = "Sexo",
+       y = "",
+       title = "Población según género- 55 a 60 años") +
+  theme_minimal()
+```
+
+```{r}
+ggpubr::ggarrange(entre15y20, entre35y40, entre55y60, label.y = "Cantidad de Respuestas", nrow = 3)
+
+```
+
+Se observa que a medida que aumenta el rango de edad también se va equilibrando la diferencia de Sexo entre los participantes.
+
+
+## Nivel de respuestas por cada una de las preguntas. Separación por rangos de edad.
+### Rangos: 15-20 años, 35-40 años, y 55-60 años.
+
+```{r}
+poblacion_entre15y20 <- datos_totales_Tidy %>% filter(Edad >= 15 & Edad <= 20)
+poblacion_entre35y40 <- datos_totales_Tidy %>% filter(Edad >= 35 & Edad <= 40)
+poblacion_entre55y60 <- datos_totales_Tidy %>% filter(Edad >= 55 & Edad <= 60)
+```
+
+### Rango entre 15 y 20 años.
+```{r}
+poblacion_entre_15y20_Pregunta9 <- poblacion_entre15y20 %>%
+  arrange(Preguntas) %>% filter(Preguntas == "PensamientosSuicidas") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "9-Pensamientos Suicidas")
+poblacion_entre_15y20_Pregunta8 <- poblacion_entre15y20 %>%
+  arrange(Preguntas) %>% filter(Preguntas == "AccionarLento") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "8-Accionar Lento")
+poblacion_entre_15y20_Pregunta7 <- poblacion_entre15y20 %>%
+  arrange(Preguntas) %>% filter(Preguntas == "ProblemasDeConcentracion") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "7-Problemas de Concentracion")
+poblacion_entre_15y20_Pregunta6 <- poblacion_entre15y20 %>%
+  arrange(Preguntas) %>% filter(Preguntas == "SensacionDeFracaso") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "6-Sensación de Fracaso")
+poblacion_entre_15y20_Pregunta5 <- poblacion_entre15y20 %>%
+  arrange(Preguntas) %>% filter(Preguntas == "PocoApetito") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "5-Poco Apetito")
+poblacion_entre_15y20_Pregunta4 <- poblacion_entre15y20 %>%
+  arrange(Preguntas) %>% filter(Preguntas == "SensacionDeCansancio") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "4-Sensacion de Cansancio")
+poblacion_entre_15y20_Pregunta3 <- poblacion_entre15y20 %>%
+  arrange(Preguntas) %>% filter(Preguntas == "ProblemasDeSuenio") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "3-Problemas de Sueño")
+poblacion_entre_15y20_Pregunta2 <- poblacion_entre15y20 %>%
+  arrange(Preguntas) %>% filter(Preguntas == "SensacionDeDepresion") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "2-Sensación de Depresion")
+poblacion_entre_15y20_Pregunta1 <- poblacion_entre15y20 %>%
+  arrange(Preguntas) %>% filter(Preguntas == "PocoInteres") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "1-Poco Interés")
+respuestas_por_pregunta_entre15y20 <- rbind(poblacion_entre_15y20_Pregunta1) %>% 
+  rbind(poblacion_entre_15y20_Pregunta2) %>%
+  rbind(poblacion_entre_15y20_Pregunta3) %>%
+  rbind(poblacion_entre_15y20_Pregunta4) %>%
+  rbind(poblacion_entre_15y20_Pregunta5) %>%
+  rbind(poblacion_entre_15y20_Pregunta6) %>%
+  rbind(poblacion_entre_15y20_Pregunta7) %>%
+  rbind(poblacion_entre_15y20_Pregunta8) %>%
+  rbind(poblacion_entre_15y20_Pregunta9) %>%
+  arrange(Sintoma)
+respuestas_por_pregunta_entre15y20 %>% 
+  ggplot(aes(x = Respuestas, y = Cantidad_de_rtas, fill = Sintoma)) +
+  geom_col(width = 0.5) +
+  labs(x = "Respuestas",
+       y = "Cantidad de Respuestas",
+       title = "Respuestas por pregunta - 15 a 20 años") + 
+  theme_minimal() +
+  facet_grid(. ~ Sintoma)
+```
+```
+(Aclaración: Decidimos dejar este formato de código para el gráfico ya que, a pesar de ser más extenso, nos permite reordenar las variables según el orden de los síntomas, además de renombrarlos para más claridad) 
+```
+
+### Rango entre 35 y 40 años
+```{r}
+poblacion_entre_35y40_Pregunta9 <- poblacion_entre35y40 %>%
+  arrange(Preguntas) %>% filter(Preguntas == "PensamientosSuicidas") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "9-Pensamientos Suicidas")
+poblacion_entre_35y40_Pregunta8 <- poblacion_entre35y40 %>%
+  arrange(Preguntas) %>% filter(Preguntas == "AccionarLento") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "8-Accionar Lento")
+poblacion_entre_35y40_Pregunta7 <- poblacion_entre35y40 %>%
+  arrange(Preguntas) %>% filter(Preguntas == "ProblemasDeConcentracion") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "7-Problemas de Concentracion")
+poblacion_entre_35y40_Pregunta6 <- poblacion_entre35y40 %>%
+  arrange(Preguntas) %>% filter(Preguntas == "SensacionDeFracaso") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "6-Sensación de Fracaso")
+poblacion_entre_35y40_Pregunta5 <- poblacion_entre35y40 %>%
+  arrange(Preguntas) %>% filter(Preguntas == "PocoApetito") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "5-Poco Apetito")
+poblacion_entre_35y40_Pregunta4 <- poblacion_entre35y40 %>%
+  arrange(Preguntas) %>% filter(Preguntas == "SensacionDeCansancio") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "4-Sensacion de Cansancio")
+poblacion_entre_35y40_Pregunta3 <- poblacion_entre35y40 %>%
+  arrange(Preguntas) %>% filter(Preguntas == "ProblemasDeSuenio") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "3-Problemas de Sueño")
+poblacion_entre_35y40_Pregunta2 <- poblacion_entre35y40 %>%
+  arrange(Preguntas) %>% filter(Preguntas == "SensacionDeDepresion") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "2-Sensación de Depresion")
+poblacion_entre_35y40_Pregunta1 <- poblacion_entre35y40 %>%
+  arrange(Preguntas) %>% filter(Preguntas == "PocoInteres") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "1-Poco Interés")
+respuestas_por_pregunta_entre35y40 <- rbind(poblacion_entre_35y40_Pregunta1) %>% 
+  rbind(poblacion_entre_35y40_Pregunta2) %>%
+  rbind(poblacion_entre_35y40_Pregunta3) %>%
+  rbind(poblacion_entre_35y40_Pregunta4) %>%
+  rbind(poblacion_entre_35y40_Pregunta5) %>%
+  rbind(poblacion_entre_35y40_Pregunta6) %>%
+  rbind(poblacion_entre_35y40_Pregunta7) %>%
+  rbind(poblacion_entre_35y40_Pregunta8) %>%
+  rbind(poblacion_entre_35y40_Pregunta9) %>%
+  arrange(Sintoma)
+respuestas_por_pregunta_entre35y40 %>% 
+  ggplot(aes(x = Respuestas, y = Cantidad_de_rtas, fill = Sintoma)) +
+  geom_col(width = 0.5) +
+  labs(x = "Respuestas",
+       y = "Cantidad de Respuestas",
+       title = "Respuestas por pregunta - 35 a 40 años") + 
+  theme_minimal() +
+  facet_grid(. ~ Sintoma)
+```
+### Respuestas por pregunta -Rango entre 55 y 60 años
+```{r}
+poblacion_entre_55y60_Pregunta9 <- poblacion_entre55y60 %>%
+  arrange(Preguntas) %>% filter(Preguntas == "PensamientosSuicidas") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "9-Pensamientos Suicidas")
+poblacion_entre_55y60_Pregunta8 <- poblacion_entre55y60 %>%
+  arrange(Preguntas) %>% filter(Preguntas == "AccionarLento") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "8-Accionar Lento")
+poblacion_entre_55y60_Pregunta7 <- poblacion_entre55y60 %>%
+  arrange(Preguntas) %>% filter(Preguntas == "ProblemasDeConcentracion") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "7-Problemas de Concentracion")
+poblacion_entre_55y60_Pregunta6 <- poblacion_entre55y60 %>%
+  arrange(Preguntas) %>% filter(Preguntas == "SensacionDeFracaso") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "6-Sensación de Fracaso")
+poblacion_entre_55y60_Pregunta5 <- poblacion_entre55y60 %>%
+  arrange(Preguntas) %>% filter(Preguntas == "PocoApetito") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "5-Poco Apetito")
+poblacion_entre_55y60_Pregunta4 <- poblacion_entre55y60 %>%
+  arrange(Preguntas) %>% filter(Preguntas == "SensacionDeCansancio") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "4-Sensacion de Cansancio")
+poblacion_entre_55y60_Pregunta3 <- poblacion_entre55y60 %>%
+  arrange(Preguntas) %>% filter(Preguntas == "ProblemasDeSuenio") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "3-Problemas de Sueño")
+poblacion_entre_55y60_Pregunta2 <- poblacion_entre55y60 %>%
+  arrange(Preguntas) %>% filter(Preguntas == "SensacionDeDepresion") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "2-Sensación de Depresion")
+poblacion_entre_55y60_Pregunta1 <- poblacion_entre55y60 %>%
+  arrange(Preguntas) %>% filter(Preguntas == "PocoInteres") %>%
+  group_by(Respuestas) %>% 
+  summarise(Cantidad_de_rtas = n()) %>%
+  mutate(Sintoma = "1-Poco Interés")
+respuestas_por_pregunta_entre55y60 <- rbind(poblacion_entre_55y60_Pregunta1) %>% 
+  rbind(poblacion_entre_55y60_Pregunta2) %>%
+  rbind(poblacion_entre_55y60_Pregunta3) %>%
+  rbind(poblacion_entre_55y60_Pregunta4) %>%
+  rbind(poblacion_entre_55y60_Pregunta5) %>%
+  rbind(poblacion_entre_55y60_Pregunta6) %>%
+  rbind(poblacion_entre_55y60_Pregunta7) %>%
+  rbind(poblacion_entre_55y60_Pregunta8) %>%
+  rbind(poblacion_entre_55y60_Pregunta9) %>%
+  arrange(Sintoma)
+respuestas_por_pregunta_entre55y60 %>% 
+  ggplot(aes(x = Respuestas, y = Cantidad_de_rtas, fill = Sintoma)) +
+  geom_col(width = 0.5) +
+  labs(x = "Respuestas",
+       y = "Cantidad de Respuestas",
+       title = "Respuestas por pregunta - 55 a 60 años") + 
+  theme_minimal() +
+  facet_grid(. ~ Sintoma)
+```
+
+Se observa que para el rango de entre 15 y 20 años, hubo mas resupestas máximas (5) para los síntomas del 1 al 7 en comparación con los otros rangos. A medida que aumenta el rango de edad, estos niveles disminuyen o no se destacan tanto respecto de los otros niveles de respuesta.También se observa un mayor número de respuestas máximas para el síntoma de pensamientos suicidas en la población mas jóven.
+
+
+# ANALISIS SOBRE EL SINTOMA IDEACIÓN SUICIDA
+## Comparación entre los niveles de respuestas para el síntoma 9 (Ideación Suicida)
+### Totales. 
+
+```{r}
+pensamiento_suicida <- datos_totales_Tidy %>% 
+  filter(Preguntas == "PensamientosSuicidas") %>% 
+  group_by(Respuestas) %>% 
+  summarise(Cantidad = n())
+pensamiento_suicida %>% ggplot(aes(x = Respuestas, y = Cantidad, fill = Respuestas)) +
+  geom_col(width = 0.5, color = "blue") +
+  labs(x = "Respuestas",
+       y = "Cantidad de Respuestas",
+       title = "Respuestas para ideación suicida") + 
+  theme_minimal()
+```
+
+# MATRIZ DE CORRELACION
+## Se relacionan todos los síntomas entre sí.
+
+
+```
+(VOLVER A REVISAR SI AHORA QUEDO OK) NOTA: Esta enumeración quedó mal en el html y se hace muy difícil de leer.
+```
+
+```{r}
+rm(list = ls())
+datos_totales <- read.csv("Datos_Reduccion.csv", sep = ";", dec = ".", header = TRUE)
+matriz <- datos_totales[,3:11]
+cor <- cor(matriz)
+cor2 <- chart.Correlation(matriz)
+```
+
+Se observó una relación transitiva entre los sítomas Sensacion de depresion ->> Sensacion de fracaso ->> Pensamientos suicidas
+
+(NOTA: SUMARIA ESTO, PERO FALTA REVISAR)
+## Correlaciones Bivariadas (Pearson)
+```{r}
+datos_totales %>% 
+  drop_na %>% 
+  select(all_of(c("p1", "p2", "p3", "p4", "p5",
+                  "p6","p7", "p8", "p9"))) %>%
+  ggpairs(lower = NULL) +
+  theme_pubclean() +
+  theme(axis.text.x = element_text(angle = 90, 
+                                   vjust = 0.5, 
+                                   hjust=1))
+```
+
+Se observa un alto nivel de correlación positiva entre todos los síntomas y se destacan los siguientes:
+- La sensacion de depresion y la falta de interes
+- La sensacion de depresion y la sensacion de cansancio
+- La sensacion de depresion y la sensacion de fracaso
+- La sensacion de fracaso y los pensamientos suicidas
+
+Respecto al tamaño del efecto o intensidad de las correlaciones, valores de .10, .30, y .50 se consideran pequeños, medios, y largos respectivamente. Según este criterio, la mayor parte de los indicadores de depresión muestran correlaciones de moderada magnitud. Es importante notar que no se observan correlaciones cercanas a 1, lo que pueda estar dando cuenta de multicolinealidad o solapamiento entre indicadores. Todas las correlaciones observadas son estadísticamente significativas (p < .05).
+
+
+## Matriz de correlacion entre síntomas destacados y la edad
+
+Correlación entre las preguntas con mayor relevancia: Sensacion de depresion ->> Sensacion de fracaso ->> Pensamientos suicidas y la Edad de los participantes.
+
+```{r}
+datos_totales_reduccion <- read.csv("Datos_Reduccion.csv", sep = ";", dec = ".", header = TRUE)
+matriz2 <- datos_totales_reduccion[,1:4]
+cor <- cor(matriz2)
+cor2 <- chart.Correlation(matriz2)
+```
+Se observa en todos los casos una correlación negativa leve en el contexto analizado.
+
+# PRUEBA T 
+## Análisis Descriptivo
+La columna Suicide-Extrem en los datos representa las respuesta extremas para ideación suicida ya categorizada en 0 = no ideación suicida y 1 = ideación suicida.Se observa una correlación entre los niveles de respuestas máximos a todas las preguntas sintomáticas de la 1 a la 8 en relación con el grupo de ideación suicida. Es decir, los participantes correspondientes al grupo 1 respondieron mayormente con niveles extremos (5) al resto de las preguntas, mientras que en el grupo 0, si bien se destaca mayor presencia en otros síntomas, no se observa una fuerte tendencia a los valores acosiados con la ideación suicida.
+
+### Tabla descriptiva general.
+La variable Depresión se calcula en función de la sumatoria de los distintos niveles de respuestas (entre 1 y 5) a los síntomas de 1 a 8 (Excluyendo el factor suicide_extrem)
+```
+NOTA: Acá no estaría mal hacer una breve explicación de por qué claseifican a los que tienen respuesta 5 como ideación suicida y agrupan del 1 al 4 en no ideación suicida. El skim() de abajo está bueno, se ve bastante claro que la distribución es distinta.
+```
+
+```{r}
+# Carga y preprocesado de datos
+Base <- read.csv("phq.csv", sep = ";", dec = ".", header = TRUE)
+Base2 <- Base %>% 
+ mutate(Depresion = phq1+phq2+phq3+phq4+phq5+phq6+phq7+phq8) %>% 
+  mutate(Suicide_extrem = as.factor(Suicide_extrem))%>%
+   drop_na()
+
+Base2 %>%
+group_by(Suicide_extrem) %>% 
+skim(Depresion)
+```
+
+### Histograma
+Comparativo entre grupo 0 (no ideación suicida) y grupo 1 (ideación suicida) correspondientes al factor suicide_extrem en función del nivel de Depresión medido por la suma de respuestas correspondientes a cada nivel de respuesta (entre 1 y 5). Siendo 8 el valor mínimo posible (la población responde 1 a las 8 preguntas) y 40 el valor máximo posible (la población responde 5 a las 8 preguntas).
+
+(VER SI AGREGAR ESTO) Los resultados muestran que no se han presentado casos perdidos. Al describir los datos en función del sexo de los participantes no se observan diferencias atendibles en cuanto a la distribución de las puntuaciones de los indicadores de depresión ni respecto a la variable edad. Esto es importante dado que muestra evidencia de invarianza de las variables en función del sexo, y por tanto la posibilidad de unificar los análisis subsiguientes respecto a esta última variable. Asimismo, a partir de estos análisis iniciales puede verificarse que, en cuanto a la sumatoria total de depresión, los grupos con y sin ideaciones suicidas difieren en la distribución de estas puntuaciones. 
+```
+NOTA: Me parece que acá los títulos están cambiados. Por otro lado, hubiera elegido un tipo de gráfico ya que los tres muestran más o menos lo mismo.
+```
+
+### Graficos Descriptivos
+
+#### Gráfico comparativo entre grupo 0 y grupo 1 en función del nivel de Depresión. 
+```{r}
+Base2 %>%
+    ggplot(aes(x = Suicide_extrem,
+               y = Depresion, 
+               fill= Suicide_extrem)) +
+  geom_violin()
+```
+
+## Inferenciales - Prueba T
+Se observa diferencia significativa entre la media de los grupos 0 y 1 para el nivel de depresión calculado en función de los primeros 8 síntomas. Es decir, de acuerdo con los niveles observados, una persona que responde con altos niveles a los síntomas del 1 al 8, tiene mayor probabilidad de tener pensamientos suicidas, tal como se observa en los gráficos descriptivos anteriores. 
+
+```
+NOTA: El título sale mal en el html. Acá faltaría comentar un poco cuál es el p y, sobre todo, cuál es el tamaño del efecto. Por otro lado, esto es lo mismo que están testeando en el primer modelo lineal. Fijensé que la diferencia que aparece en la figura y la pendiente del modelo lineal les dan exactamente lo mismo.
+```
+```{r}
+Base2 %>% 
+group_by(Suicide_extrem)  %>% 
+summarise(mean(Depresion))
+```
+
+```{r}
+t.test(Base2$Depresion~Base2$Suicide_extrem)
+ggbetweenstats(
+  data = Base2,
+  x = Suicide_extrem,
+  y = Depresion,
+  title = "Prueba t")
+```
+
+# MODELO LINEAL
+
+## Análisis en función del nivel de depresión y la relación con la edad de los participantes. 
+
+### Tabla de resultados para modelo lineal basado en el nivel de depresión y el factor suicide_extrem. Resúmen.
+```{r}
+modelo <- lm(Base2$Depresion ~ Base2$Suicide_extrem)
+summary(modelo)
+```
+
+```
+NOTA: Acá falta interpretar los resultados del modelo.
+```
+
+### Tabla de resultados para modelo lineal basado en el nivel de depresión y la edad. Resúmen.
+```{r}
+Base <- read.csv("Datos_Totales.csv", sep = ";", dec = ".", header = TRUE)
+Base_total2 <- Base %>% 
+  mutate(Depresion = PocoInteres+SensacionDeDepresion+ProblemasDeSuenio+SensacionDeCansancio+PocoApetito+SensacionDeFracaso+ProblemasDeConcentracion+AccionarLento+PensamientosSuicidas) %>% 
+  drop_na()
+modelo <- lm(Base_total2$Depresion ~ Base_total2$Edad)
+summary(modelo)
+```
+
+```
+NOTA: No estaría mal explical como construyen y cuál es la motivación del modelo.
+```
+
+### Grafico de modelo lineal en relación a la edad para el nivel de Depresión
+Incluye también, las respuestas del síntoma 9 (ideación suicida). Siendo 9 el valor mínimo (los participantes respondieron 1 a todos los síntomas) y 45 el valor máximo (los participantes respondieron 5 a las 9 preguntas).
+Se observa un nivele extremo de depresión concentrado en la franja etarea de entre 20 y 40 años. Se observa una pequeña relación entre el nivel de depresión y la edad tal y como se observó en el análisis exploratorio. 
+
+```{r}
+Base_total2 %>%
+  ggplot(aes(x = Depresion,
+             y = Edad)) +
+  geom_jitter(width = 0.23, alpha = 0.5) +
+  geom_smooth(se = FALSE,
+              method = lm)
+```
+
+```
+NOTA: En esta figura pareciera verse que los residuos del modelo no son gaussianos (algo potencialmente problemático para un modelo lineal). Les recomiendo graficar los residuos o ver un q-q plot para analizar un poco si el modelo que están usando es el correcto o hace falta, por ejemplo, tranasformar los datos.
+```
+
+```
+NOTA GENERAL: No hay un cierre ni una conclusión que expliqué los modelos que hicieron y qué concluyen de los mismos.
+```
+
+```
+(FALTA REVISAR DESDE CORRELACIONES MAS QUE NADA) NOTA: Esta explicación está bien y el análisis y los gráficos también. Sin embargo, falta interpretación tanto de los gráficos de redes como de las comparaciones entre redes.
+
+Al igual que en el casod e los modelos lineales no se entiende qué es lo que quieren ver con estos modelos y que implican los resultados.
+```
