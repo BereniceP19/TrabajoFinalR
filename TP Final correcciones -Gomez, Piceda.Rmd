@@ -1,7 +1,7 @@
 ---
 title: "Sintomatología depresiva en personas con Ideación Suicida: Un análisis de redes"
-author: "Pablo Ezequiel Flores Kanter, Berenice Piceda, Sol Gomez"
-date: "29/11/2021"
+author: "Berenice Piceda, Sol Gomez"
+date: "2/12/2021"
 output:
   html_document: 
     code_folding: show
@@ -35,7 +35,7 @@ library("GGally")
 
 # RESUMEN
 ## 1. Descripción general de la muestra y datos recolectados.
-El trabajo se realizará en base a datos sobre sintomatología depresiva a partir de una muestra online de 4909 sujetos. Los datos de los distintos síntomas depresivos han sido obtenidos a partir de la aplicación de la escala Patient Health Questionnaire 9 (PHQ-9), un instrumento estandarizado de autoreporte que indaga sobre nueve síntomas depresivos diferentes. Para ello el instrumento se basa en los criterios diagnóstico para el Trastorno Depresivo Mayor que establece el Manual Diagnóstico y Estadístico de Trastornos Mentales en su quinta edición (DSM-V). La escala contempla la presencia de los siguientes síntomas en las últimas dos semanas: 1) poco interés; 2) sensación de depresión; 3) problemas de sueño; 4) sensación de cansancio; 5) poco apetito; 6) sensación de fracaso; 7) problemas de concentración; 8) accionar lento; y 9) pensamientos suicidas. Los ítems se responden en una escala de Likert desde 1 (nunca) a 5 (casi todos los días).  
+El trabajo se realizará en base a datos sobre sintomatología depresiva a partir de una muestra online de 4909 sujetos. Los datos de los distintos síntomas depresivos han sido obtenidos a partir de la aplicación de la escala Patient Health Questionnaire 9 (PHQ-9), un instrumento estandarizado de autoreporte que indaga sobre nueve síntomas depresivos diferentes. Para ello el instrumento se basa en los criterios diagnóstico para el Trastorno Depresivo Mayor que establece el Manual Diagnóstico y Estadístico de Trastornos Mentales en su quinta edición (DSM-V). La escala contempla la presencia de los siguientes síntomas en las últimas dos semanas: 1) Poco interés; 2) Sensación de depresión; 3) Problemas de sueño; 4) Sensación de cansancio; 5) Poco apetito; 6) Sensación de fracaso; 7) Problemas de concentración; 8) Accionar lento; y 9) Pensamientos suicidas. Los ítems se responden en una escala de Likert desde 1 (nunca) a 5 (casi todos los días).  
 
 El principal objetivo de éste trabajo es analizar cómo correlacionan los distíntos síntomas depresivos mencionados (sintomas del 1 (poco interés) al 8 (accionar lento) en función de la variable pensamientos suicidas (que se evalúa a partir del síntoma 9 de la escala PHQ-9). Para esto se seguiran los siguientes pasos de análisis: a) Se aplicarán análisis exploratorios de los datos con el objetivo principal de identificar casos ausentes y atípicos, así como describir la distribución de las puntuaciones y diagramar correlaciones bivariadas; y b) se estimarán modelos de redes denominadas Markov random field o redes no-direccionales (undirected network/undirected graphical model) en dos grupos extremos de participantes distribuidos en base al item 9 de ideación suicida, a los fines de comparar las redes entre los grupos extremos de interés.
 
@@ -50,12 +50,12 @@ Se analiza la poblacion de manera general en funcion del género y de la edad, c
 Se analiza la correlación entre cada una de las pregruntas respecto de las otras y la correlación entre algunas de las preguntas y la edad.
 
 ### -Prueba t: 
-Separación de los participantes en dos grupos (Ideación suicida (Rta máxima en la escala de Likert a la pregunta 9) y no ideación suicida (Rta = 1 a la pregunta 9)) y análisis respecto al resto de las preguntas. 
+Separación de los participantes en dos grupos (Ideación suicida (Rta máxima en la escala de Likert a la pregunta 9) y no ideación suicida (Rta = 1 a la pregunta 9) y análisis respecto al resto de las preguntas. 
 
 ### -Modelo lineal: 
 Analisis en función del nivel de depresión calculado en base al total de las preguntas y la relación con la edad de los participantes.
 
-### -Estimación de modelos de redes (Bonus Track):
+### -Estimación de modelos de redes:
 se estimarán modelos de redes denominadas Markov random field o redes no-direccionales (undirected network/undirected graphical model) en dos grupos extremos de participantes distribuidos en base al item 9 de ideación suicida, a los fines de comparar las redes entre los grupos extremos de interés. El objetivo de la estimación de modelos de redes es verificar como estas distintas variables correlacionan entre sí, aplicando para esto correlaciones parciales (correlaciones entre pares de ítems controlando por el resto de los ítems o indicadores considerados).
 
 ## 3. Estructura de los datos
@@ -77,8 +77,8 @@ Se cuentan con 44181 observaciones, pero éstas se ven reducidas drásticamente 
 Para este caso no fue pertinente llevar el dataset a un formato tidy similar al aplicado para los análisis iniciales. Esto es así debido a que cada síntoma depresivo se entiende como una variable diferente, que puede estar asociada con las restantes, pero que refiere a un atributo distintivo de la depresión. Más importante aún, el objetivo de la estimación de modelos de redes es verificar como estas distintas variables correlacionan entre sí, y si éstas correlaciones parciales entre ellas presentan alguna diferencia entre dos grupos independientes de participantes (aquellos con alta ideación suicida vs aquellos que no manifestaron ideación suicida). Por todo ello, en este caso se cuenta con 11 variables (edad, sexo, phq-1 al phq-8, y el item 9 del phq que sirve para generar los grupos extremos en esta variable referida a la ideación suicida). Sin embargo, para simplificar la base solo se consideró la variable de ideación suicida con los grupos ya generados (variable grupos extremos en el item 9 del phq, una variable nominal dicotómica, 0 = grupo no ideación suicida y 1 = grupo con ideación suicida) y los síntomas depresivos restantes (ítems 1 al 8 del PHQ-9, variables enteras con rango del 1 al 5). Esta base se denomina "phq.csv" en los análisis correspondientes, y contiene los datos de las 4909 observaciones. 
 
 
-# ANÁLISIS EXPLORATORIO
-### Reconocimiento de la Poblacion. 
+# ANÁLISIS EXPLORATORIO GENERAL
+Reconocimiento de la Poblacion. 
 ```{r}
 #carga de datos generales
 datos_totales <- read.csv("Datos_Totales.csv", sep = ";", dec = ".", header = TRUE)
@@ -107,7 +107,6 @@ datos_totales_Tidy %>% skim()
 ```
 ## Grafico de la poblacion general en base a genero y edad
 
-La mayoría de la población se corresponde con la Masculina alrededor de 21 años de edad.
 ```{r}
 datos_totales_GeneroYEdad <- datos_totales %>%
   ggplot(aes(x = Sexo, y = Edad, color = Sexo)) +
@@ -116,6 +115,7 @@ datos_totales_GeneroYEdad <- datos_totales %>%
   stat_halfeye(color = "black", fill = "orange", alpha = 0.4) 
 datos_totales_GeneroYEdad
 ```  
+La mayoría de la población se corresponde con la Masculina alrededor de 21 años de edad.
 
 ## Gráfico de la población general en cantidad por Sexo.
 ```{r}
@@ -132,7 +132,6 @@ poblacion_por_genero %>% ggplot(aes(x = Sexo, y = Cantidad, fill = Sexo)) +
 ```
 
 ## Grafico General - Respuestas para cada pregunta por cada nivel de respuesta.
-Se puede observar que, si bien, en la pregunta 9 (Pensamientos suicidas) predomina la respuesta 1. En preguntas correspondientes a otros síntomas (preguntas entre 2 y 6) predomina la respuesta 5
 ```{r}
 datos_totales_Tidy_Pregunta9 <- datos_totales_Tidy %>%
   arrange(Preguntas) %>% filter(Preguntas == "PensamientosSuicidas") %>%
@@ -198,17 +197,17 @@ respuestas_por_pregunta %>% ggplot + aes(x = Respuestas, y = Cantidad_de_rtas, f
   facet_grid(. ~ Sintoma)
   
 ```
+Se puede observar que, si bien, en la pregunta 9 (Pensamientos suicidas) predomina la respuesta 1. En preguntas correspondientes a otros síntomas (preguntas entre 2 y 6) predomina la respuesta 5.
 
 ## Gráficos de la población según Sexo para tres grupos etarios.
+
 ### Rangos: 15-20 años, 35-40 años, y 55-60 años.
-Se observa que a medida que aumenta el rango de edad también se va equilibrando la diferencia de Sexo entre los participantes.
 ```{r}
 poblacion_entre15y20 <- datos_totales %>% filter(Edad >= 15 & Edad <= 20)
 poblacion_entre35y40 <- datos_totales %>% filter(Edad >= 35 & Edad <= 40)
 poblacion_entre55y60 <- datos_totales %>% filter(Edad >= 55 & Edad <= 60)
 ```
-### (Prueba a revisar para unir todos los gráficos, falta arreglar)
-### Rango entre 15 y 20 años.
+
 ```{r}
 numero_por_genero_entre15y20 <- poblacion_entre15y20 %>% 
   group_by(Sexo) %>% 
@@ -222,8 +221,6 @@ entre15y20 <- numero_por_genero_entre15y20 %>% ggplot(aes(x = Sexo, y = Cantidad
        title = "Población según género- 15 a 20 años") +
   theme_minimal()
 
-### Rango entre 35 y 40 años.
-
 numero_por_genero_entre35y40 <- poblacion_entre35y40 %>% 
   group_by(Sexo) %>% 
   summarise(Cantidad = n())
@@ -235,7 +232,6 @@ entre35y40 <- numero_por_genero_entre35y40 %>% ggplot(aes(x = Sexo, y = Cantidad
        y = "",
        title = "Población según género- 35 a 40 años") +
   theme_minimal()
-### Rango entre 55 y 60 años
 
 numero_por_genero_entre55y60 <- poblacion_entre55y60 %>% 
   group_by(Sexo) %>% 
@@ -260,7 +256,7 @@ Se observa que a medida que aumenta el rango de edad también se va equilibrando
 
 
 ## Nivel de respuestas por cada una de las preguntas. Separación por rangos de edad.
-### Rangos: 15-20 años, 35-40 años, y 55-60 años.
+Rangos: 15-20 años, 35-40 años, y 55-60 años.
 
 ```{r}
 poblacion_entre15y20 <- datos_totales_Tidy %>% filter(Edad >= 15 & Edad <= 20)
@@ -404,7 +400,8 @@ respuestas_por_pregunta_entre35y40 %>%
   theme_minimal() +
   facet_grid(. ~ Sintoma)
 ```
-### Respuestas por pregunta -Rango entre 55 y 60 años
+
+### Rango entre 55 y 60 años
 ```{r}
 poblacion_entre_55y60_Pregunta9 <- poblacion_entre55y60 %>%
   arrange(Preguntas) %>% filter(Preguntas == "PensamientosSuicidas") %>%
@@ -476,7 +473,6 @@ Se observa que para el rango de entre 15 y 20 años, hubo mas resupestas máxima
 
 # ANALISIS SOBRE EL SINTOMA IDEACIÓN SUICIDA
 ## Comparación entre los niveles de respuestas para el síntoma 9 (Ideación Suicida)
-### Totales. 
 
 ```{r}
 pensamiento_suicida <- datos_totales_Tidy %>% 
@@ -490,29 +486,16 @@ pensamiento_suicida %>% ggplot(aes(x = Respuestas, y = Cantidad, fill = Respuest
        title = "Respuestas para ideación suicida") + 
   theme_minimal()
 ```
+El gráfico muestra que la mayor cantidad de respuestas para el síntoma 9 corresponden a la menor valoración de forma significativa (1, es decir, poco frecuente). Sin embargo, la segunda respuesta más relevante se condice con la de valoración más extrema (5, todos los días), lo cual implicaría la mayor frecuencia. 
+
 
 # MATRIZ DE CORRELACION
-## Se relacionan todos los síntomas entre sí.
-
-
-```
-(VOLVER A REVISAR SI AHORA QUEDO OK) NOTA: Esta enumeración quedó mal en el html y se hace muy difícil de leer.
-```
+## Correlaciones Bivariadas
 
 ```{r}
 rm(list = ls())
-datos_totales <- read.csv("Datos_Reduccion.csv", sep = ";", dec = ".", header = TRUE)
-matriz <- datos_totales[,3:11]
-cor <- cor(matriz)
-cor2 <- chart.Correlation(matriz)
-```
-
-Se observó una relación transitiva entre los sítomas Sensacion de depresion ->> Sensacion de fracaso ->> Pensamientos suicidas
-
-(NOTA: SUMARIA ESTO, PERO FALTA REVISAR)
-## Correlaciones Bivariadas (Pearson)
-```{r}
-datos_totales %>% 
+datos_reduccion <- read.csv("Datos_Reduccion.csv", sep = ";", dec = ".", header = TRUE)
+datos_reduccion %>% 
   drop_na %>% 
   select(all_of(c("p1", "p2", "p3", "p4", "p5",
                   "p6","p7", "p8", "p9"))) %>%
@@ -523,12 +506,7 @@ datos_totales %>%
                                    hjust=1))
 ```
 
-Se observa un alto nivel de correlación positiva entre todos los síntomas y se destacan los siguientes:
-- La sensacion de depresion y la falta de interes
-- La sensacion de depresion y la sensacion de cansancio
-- La sensacion de depresion y la sensacion de fracaso
-- La sensacion de fracaso y los pensamientos suicidas
-
+Se observó una correlación entre los síntomas, destacándose: Sensacion de depresion ->> Sensacion de fracaso ->> Pensamientos suicidas.
 Respecto al tamaño del efecto o intensidad de las correlaciones, valores de .10, .30, y .50 se consideran pequeños, medios, y largos respectivamente. Según este criterio, la mayor parte de los indicadores de depresión muestran correlaciones de moderada magnitud. Es importante notar que no se observan correlaciones cercanas a 1, lo que pueda estar dando cuenta de multicolinealidad o solapamiento entre indicadores. Todas las correlaciones observadas son estadísticamente significativas (p < .05).
 
 
@@ -549,10 +527,7 @@ Se observa en todos los casos una correlación negativa leve en el contexto anal
 La columna Suicide-Extrem en los datos representa las respuesta extremas para ideación suicida ya categorizada en 0 = no ideación suicida y 1 = ideación suicida.Se observa una correlación entre los niveles de respuestas máximos a todas las preguntas sintomáticas de la 1 a la 8 en relación con el grupo de ideación suicida. Es decir, los participantes correspondientes al grupo 1 respondieron mayormente con niveles extremos (5) al resto de las preguntas, mientras que en el grupo 0, si bien se destaca mayor presencia en otros síntomas, no se observa una fuerte tendencia a los valores acosiados con la ideación suicida.
 
 ### Tabla descriptiva general.
-La variable Depresión se calcula en función de la sumatoria de los distintos niveles de respuestas (entre 1 y 5) a los síntomas de 1 a 8 (Excluyendo el factor suicide_extrem)
-```
-NOTA: Acá no estaría mal hacer una breve explicación de por qué claseifican a los que tienen respuesta 5 como ideación suicida y agrupan del 1 al 4 en no ideación suicida. El skim() de abajo está bueno, se ve bastante claro que la distribución es distinta.
-```
+La variable Depresión se calcula en función de la sumatoria de los distintos niveles de respuestas (entre 1 y 5) a los síntomas de 1 a 8 (Excluyendo el factor suicide_extrem). Este factor extremo (respuesta 5) es el que, según la bibliografía, resulta el más estrecho con la ideación suicida, por lo que decidimos hacer especial foco en el mismo. 
 
 ```{r}
 # Carga y preprocesado de datos
@@ -565,19 +540,15 @@ Base2 <- Base %>%
 Base2 %>%
 group_by(Suicide_extrem) %>% 
 skim(Depresion)
+
 ```
 
-### Histograma
-Comparativo entre grupo 0 (no ideación suicida) y grupo 1 (ideación suicida) correspondientes al factor suicide_extrem en función del nivel de Depresión medido por la suma de respuestas correspondientes a cada nivel de respuesta (entre 1 y 5). Siendo 8 el valor mínimo posible (la población responde 1 a las 8 preguntas) y 40 el valor máximo posible (la población responde 5 a las 8 preguntas).
-
-(VER SI AGREGAR ESTO) Los resultados muestran que no se han presentado casos perdidos. Al describir los datos en función del sexo de los participantes no se observan diferencias atendibles en cuanto a la distribución de las puntuaciones de los indicadores de depresión ni respecto a la variable edad. Esto es importante dado que muestra evidencia de invarianza de las variables en función del sexo, y por tanto la posibilidad de unificar los análisis subsiguientes respecto a esta última variable. Asimismo, a partir de estos análisis iniciales puede verificarse que, en cuanto a la sumatoria total de depresión, los grupos con y sin ideaciones suicidas difieren en la distribución de estas puntuaciones. 
-```
-NOTA: Me parece que acá los títulos están cambiados. Por otro lado, hubiera elegido un tipo de gráfico ya que los tres muestran más o menos lo mismo.
-```
 
 ### Graficos Descriptivos
 
 #### Gráfico comparativo entre grupo 0 y grupo 1 en función del nivel de Depresión. 
+
+Gráfico comparativo entre grupo 0 (no ideación suicida) y grupo 1 (ideación suicida) correspondientes al factor suicide_extrem en función del nivel de Depresión medido por la suma de respuestas correspondientes a cada nivel de respuesta (entre 1 y 5). Siendo 8 el valor mínimo posible (la población responde 1 a las 8 preguntas) y 40 el valor máximo posible (la población responde 5 a las 8 preguntas).
 ```{r}
 Base2 %>%
     ggplot(aes(x = Suicide_extrem,
@@ -586,12 +557,10 @@ Base2 %>%
   geom_violin()
 ```
 
-## Inferenciales - Prueba T
-Se observa diferencia significativa entre la media de los grupos 0 y 1 para el nivel de depresión calculado en función de los primeros 8 síntomas. Es decir, de acuerdo con los niveles observados, una persona que responde con altos niveles a los síntomas del 1 al 8, tiene mayor probabilidad de tener pensamientos suicidas, tal como se observa en los gráficos descriptivos anteriores. 
+Los resultados muestran que no se han presentado casos perdidos. Al describir los datos en función del sexo de los participantes no se observan diferencias atendibles en cuanto a la distribución de las puntuaciones de los indicadores de depresión ni respecto a la variable edad. Esto es importante dado que muestra evidencia de invarianza de las variables en función del sexo, y por tanto la posibilidad de unificar los análisis subsiguientes respecto a esta última variable. Asimismo, a partir de estos análisis iniciales puede verificarse que, en cuanto a la sumatoria total de depresión, los grupos con y sin ideaciones suicidas difieren en la distribución de estas puntuaciones. 
 
-```
-NOTA: El título sale mal en el html. Acá faltaría comentar un poco cuál es el p y, sobre todo, cuál es el tamaño del efecto. Por otro lado, esto es lo mismo que están testeando en el primer modelo lineal. Fijensé que la diferencia que aparece en la figura y la pendiente del modelo lineal les dan exactamente lo mismo.
-```
+## Inferenciales - Prueba T
+
 ```{r}
 Base2 %>% 
 group_by(Suicide_extrem)  %>% 
@@ -606,22 +575,23 @@ ggbetweenstats(
   y = Depresion,
   title = "Prueba t")
 ```
+Se observa diferencia significativa entre la media de los grupos 0 y 1 para el nivel de depresión calculado en función de los primeros 8 síntomas. Es decir, de acuerdo con los niveles observados, una persona que responde con altos niveles a los síntomas del 1 al 8, tiene mayor probabilidad de tener pensamientos suicidas, tal como se observa en los gráficos descriptivos anteriores. Se aprecian diferencias estadísticamente significativas entre los grupos comparados, siendo mayor el promedio de depresión en el grupo con ideaciones suicidas. Para estas diferencias se obtiene un tamaño del efecto grande.
 
 # MODELO LINEAL
 
-## Análisis en función del nivel de depresión y la relación con la edad de los participantes. 
+Análisis en función del nivel de depresión y la relación con la edad de los participantes. 
 
-### Tabla de resultados para modelo lineal basado en el nivel de depresión y el factor suicide_extrem. Resúmen.
+## Tabla de resultados para modelo lineal basado en el nivel de depresión y el factor suicide_extrem. Resúmen.
 ```{r}
 modelo <- lm(Base2$Depresion ~ Base2$Suicide_extrem)
 summary(modelo)
 ```
-
+En este modelo se busca analizar el nivel de depresión de acuerdo al factor de ideación suicida (suicide_extrem). Se observa...
 ```
 NOTA: Acá falta interpretar los resultados del modelo.
 ```
 
-### Tabla de resultados para modelo lineal basado en el nivel de depresión y la edad. Resúmen.
+## Tabla de resultados para modelo lineal basado en el nivel de depresión y la edad. Resúmen.
 ```{r}
 Base <- read.csv("Datos_Totales.csv", sep = ";", dec = ".", header = TRUE)
 Base_total2 <- Base %>% 
@@ -630,14 +600,14 @@ Base_total2 <- Base %>%
 modelo <- lm(Base_total2$Depresion ~ Base_total2$Edad)
 summary(modelo)
 ```
-
+En este modelo se busca analizar el nivel de deprsión de acuerdo a la edad. Se observa...
 ```
 NOTA: No estaría mal explical como construyen y cuál es la motivación del modelo.
 ```
 
-### Grafico de modelo lineal en relación a la edad para el nivel de Depresión
+## Grafico de modelo lineal en relación a la edad para el nivel de Depresión
 Incluye también, las respuestas del síntoma 9 (ideación suicida). Siendo 9 el valor mínimo (los participantes respondieron 1 a todos los síntomas) y 45 el valor máximo (los participantes respondieron 5 a las 9 preguntas).
-Se observa un nivele extremo de depresión concentrado en la franja etarea de entre 20 y 40 años. Se observa una pequeña relación entre el nivel de depresión y la edad tal y como se observó en el análisis exploratorio. 
+Se observa un nivele extremo de depresión concentrado en la franja etarea de entre 20 y 40 años. Se observa una pequeña relación entre el nivel de depresión y la edad tal y como se observó en el análisis exploratorio. La pendiente da el mismo resultado que aquel obtenido a través de la prueba t.
 
 ```{r}
 Base_total2 %>%
@@ -656,8 +626,51 @@ NOTA: En esta figura pareciera verse que los residuos del modelo no son gaussian
 NOTA GENERAL: No hay un cierre ni una conclusión que expliqué los modelos que hicieron y qué concluyen de los mismos.
 ```
 
-```
-(FALTA REVISAR DESDE CORRELACIONES MAS QUE NADA) NOTA: Esta explicación está bien y el análisis y los gráficos también. Sin embargo, falta interpretación tanto de los gráficos de redes como de las comparaciones entre redes.
+# ESTIMACION Y COMPARACIÓN DE LOS MODELOS DE REDES 
+Se estimarán modelos de redes denominadas Markov random field o redes no-direccionales (undirected network/undirected graphical model) en dos grupos extremos de participantes distribuidos en base al item 9 de ideación suicida. Para esto se aplica un modelo de redes denominado Gaussian graphical model (GGM). En GGM cada elemento de la matriz de covarianza inversa corresponde a una conección (edge, aristas) en la red, la cual vincula dos variables (nodes, nodos) si se evidencia una interacción. Las aristas se estandarizan como coeficientes de correlación parcial entre dos variables luego de condicionarlas al resto de las variables del dataset. Con el objetivo de minimizar los errores estándares así como la inestabilidad de los parámetros estimados debido al overfitting (particularmente en muestras pequeñas), es que, en lugar de estimar la GGM directamente invirtiendo la matriz de varianza-covarianza, el modelo se estima utilizando Least Absolute Shrinkage and Selection Operator (LASSO). A los fines de comparar las redes entre los grupos extremos de interés es que se consideran las siguientes medidas de invarianza: invarianza estructural (network structure invariance), invarianza en la fuerza global de las correlaciones (global strength invariance), e invarianza al nivel de las correlaciones parciales entre dos nodos dados (edge invariance). En cada una de estas se aplican pruebas de hipótesis basadas en permutaciones (permutation based hypothesis test) para verificar si se aprecian o no diferencias estadísticamente significativas en cada una de las medidas de invarianza.
 
-Al igual que en el casod e los modelos lineales no se entiende qué es lo que quieren ver con estos modelos y que implican los resultados.
+## 1. Estimacion de Redes 
+### Grupo Ideación Suicida
+```{r}
+Base <- read.csv("phq.csv", sep = ";", dec = ".", header = TRUE)
+suicide <- Base[Base$Suicide_extrem == 1, ]
+non_suicide <- Base[Base$Suicide_extrem == 0, ]
+data_suicide <- suicide[2:9]
+data_nonsuicide <- non_suicide[2:9]
+data_suicide <- na.omit(data_suicide)
+data_nonsuicide <- na.omit(data_nonsuicide)
+
+Network_suicide <- estimateNetwork(data_suicide,
+                                 default = "EBICglasso",
+                                 corMethod = "spearman")
+Network_non_suicide <- estimateNetwork(data_nonsuicide,
+                                   default = "EBICglasso",
+                                   corMethod = "spearman")
+L <- averageLayout(Network_suicide, Network_non_suicide)
+Max <- max(abs(c(getWmat(Network_suicide), getWmat(Network_non_suicide))))
+layout(t(1:2))
+plot(Network_suicide, layout = L, title = "Suicide", maximum = Max)
 ```
+
+### Grupo NoIdeación Suicida
+```{r}
+plot(Network_non_suicide, layout = L, title = "Non Suicide", maximum = Max)
+```
+
+## 2. Test de Comparación de Redes
+```{r}
+set.seed(1)
+NCTres <- NCT(data_suicide, data_nonsuicide, 
+              it=100,
+              test.edges = TRUE,
+              progressbar= FALSE,
+              edges = "all",
+              p.adjust.methods = "bonferroni")
+summary(NCTres)
+```
+
+```{r}
+NCTres$einv.pvals[which(NCTres$einv.pvals[,3] < 0.05), ]
+```
+
+A partir de estos análisis se verifica que las redes no son invariantes. Esto último se evidencia en términos de invarianza estructural (network structure invariance), invarianza en la fuerza global de las correlaciones (global strength invariance), e invarianza al nivel de las correlaciones parciales entre dos nodos dados (edge invariance). Sin embargo, y contrario a lo que se esperaba (si bien no se plantearon hipótesis concretas era esperable que en el grupo con ideación suicida los indicadores de depresión presentaran mayor conectividad entre sí en comparación con el grupo sin ideación suicida), se verificó que las correlaciones parciales son más fuertes entre los indicadores de depresión en el grupo sin ideación que en el grupo con ideación suicida. 
