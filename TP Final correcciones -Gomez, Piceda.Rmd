@@ -1,7 +1,7 @@
 ---
-title: "Sintomatología depresiva en personas con Ideación Suicida: Un análisis de redes"
+title: "Sintomatología depresiva en personas con Ideación Suicida"
 author: "Berenice Piceda, Sol Gomez"
-date: "2/12/2021"
+date: "6/12/2021"
 output:
   html_document: 
     code_folding: show
@@ -30,6 +30,7 @@ library("cowplot")
 library("ggpubr")
 library("ggstatsplot")
 library("GGally")
+library("car")
 ```
 
 
@@ -471,8 +472,8 @@ respuestas_por_pregunta_entre55y60 %>%
 Se observa que para el rango de entre 15 y 20 años, hubo mas resupestas máximas (5) para los síntomas del 1 al 7 en comparación con los otros rangos. A medida que aumenta el rango de edad, estos niveles disminuyen o no se destacan tanto respecto de los otros niveles de respuesta.También se observa un mayor número de respuestas máximas para el síntoma de pensamientos suicidas en la población mas jóven.
 
 
-# ANALISIS SOBRE EL SINTOMA IDEACIÓN SUICIDA
-## Comparación entre los niveles de respuestas para el síntoma 9 (Ideación Suicida)
+## Análisis sobre el síntoma Ideación Suicida.
+### Comparación entre los niveles de respuestas para el síntoma 9 (Ideación Suicida)
 
 ```{r}
 pensamiento_suicida <- datos_totales_Tidy %>% 
@@ -575,7 +576,7 @@ ggbetweenstats(
   y = Depresion,
   title = "Prueba t")
 ```
-Se observa diferencia significativa entre la media de los grupos 0 y 1 para el nivel de depresión calculado en función de los primeros 8 síntomas. Es decir, de acuerdo con los niveles observados, una persona que responde con altos niveles a los síntomas del 1 al 8, tiene mayor probabilidad de tener pensamientos suicidas, tal como se observa en los gráficos descriptivos anteriores. Se aprecian diferencias estadísticamente significativas entre los grupos comparados, siendo mayor el promedio de depresión en el grupo con ideaciones suicidas. Para estas diferencias se obtiene un tamaño del efecto grande.
+ Se observa diferencia significativa entre la media de los grupos 0 y 1 para el nivel de depresión calculado en función de los primeros 8 síntomas. Es decir, de acuerdo con los niveles observados, una persona que responde con altos niveles a los síntomas del 1 al 8, tiene mayor probabilidad de tener pensamientos suicidas, tal como se observa en los gráficos descriptivos anteriores. Se aprecian diferencias estadísticamente significativas entre los grupos comparados, siendo mayor el promedio de depresión en el grupo con ideaciones suicidas. Para estas diferencias se obtiene un tamaño del efecto grande.
 
 # MODELO LINEAL
 
@@ -586,10 +587,16 @@ Análisis en función del nivel de depresión y la relación con la edad de los 
 modelo <- lm(Base2$Depresion ~ Base2$Suicide_extrem)
 summary(modelo)
 ```
-En este modelo se busca analizar el nivel de depresión de acuerdo al factor de ideación suicida (suicide_extrem). Se observa...
+Se observa que los residuos se distribuyen conforme a una distribución normal, ya que la mediana es cercana a 0 (0.2945), y el 1er y 3er cuartil son simétricos. No hay desviaciones notables de media y mediana y hay simetría entre cuartiles, por lo que se cumpliría con los supuestos de los modelos lineales. Por otra parte, el p-value de la prueba de hipótesis del estadístico t indica la probabilidad de obtener un estimado cercano a 0 (<2e-16), por lo que se podría rechazar la hipótesis de nulidad.
+Además, en los coeficientes encontramos que el error estándar es significativamente bajo.
+
+## Estimadores
+```{r}
+broom::tidy(modelo)
 ```
-NOTA: Acá falta interpretar los resultados del modelo.
-```
+
+A partir de la columna de estimadores, vemos que las respuestas máximas incrementan la tendencia la Ideación Suicida en ~11.9 unidades.
+
 
 ## Tabla de resultados para modelo lineal basado en el nivel de depresión y la edad. Resúmen.
 ```{r}
@@ -600,15 +607,10 @@ Base_total2 <- Base %>%
 modelo <- lm(Base_total2$Depresion ~ Base_total2$Edad)
 summary(modelo)
 ```
-En este modelo se busca analizar el nivel de deprsión de acuerdo a la edad. Se observa...
-```
-NOTA: No estaría mal explical como construyen y cuál es la motivación del modelo.
-```
+Tal y como sucedía con el modelo anterior, se observa que los residuos se distribuyen conforme a una distribución normal, ya que la mediana es cercana a 0 (0.2185), y el 1er y 3er cuartil son simétricos. Por otra parte, el p-value de la prueba de hipótesis del estadístico t indica la probabilidad de obtener un estimado cercano a 0 (una vez más, <2e-16).
+
 
 ## Grafico de modelo lineal en relación a la edad para el nivel de Depresión
-Incluye también, las respuestas del síntoma 9 (ideación suicida). Siendo 9 el valor mínimo (los participantes respondieron 1 a todos los síntomas) y 45 el valor máximo (los participantes respondieron 5 a las 9 preguntas).
-Se observa un nivele extremo de depresión concentrado en la franja etarea de entre 20 y 40 años. Se observa una pequeña relación entre el nivel de depresión y la edad tal y como se observó en el análisis exploratorio. La pendiente da el mismo resultado que aquel obtenido a través de la prueba t.
-
 ```{r}
 Base_total2 %>%
   ggplot(aes(x = Depresion,
@@ -617,14 +619,9 @@ Base_total2 %>%
   geom_smooth(se = FALSE,
               method = lm)
 ```
+Este gráfico incluye las respuestas del síntoma 9 (ideación suicida), siendo 9 el valor mínimo (los participantes respondieron 1 a todos los síntomas) y 45 el valor máximo (los participantes respondieron 5 a las 9 preguntas).
+Se observa un nivel extremo de depresión concentrado en la franja etarea de entre 20 y 40 años. Se observa una pequeña relación entre el nivel de depresión y la edad tal y como se observó en el análisis exploratorio. La pendiente da el mismo resultado que aquel obtenido a través de la prueba t.
 
-```
-NOTA: En esta figura pareciera verse que los residuos del modelo no son gaussianos (algo potencialmente problemático para un modelo lineal). Les recomiendo graficar los residuos o ver un q-q plot para analizar un poco si el modelo que están usando es el correcto o hace falta, por ejemplo, tranasformar los datos.
-```
-
-```
-NOTA GENERAL: No hay un cierre ni una conclusión que expliqué los modelos que hicieron y qué concluyen de los mismos.
-```
 
 # ESTIMACION Y COMPARACIÓN DE LOS MODELOS DE REDES 
 Se estimarán modelos de redes denominadas Markov random field o redes no-direccionales (undirected network/undirected graphical model) en dos grupos extremos de participantes distribuidos en base al item 9 de ideación suicida. Para esto se aplica un modelo de redes denominado Gaussian graphical model (GGM). En GGM cada elemento de la matriz de covarianza inversa corresponde a una conección (edge, aristas) en la red, la cual vincula dos variables (nodes, nodos) si se evidencia una interacción. Las aristas se estandarizan como coeficientes de correlación parcial entre dos variables luego de condicionarlas al resto de las variables del dataset. Con el objetivo de minimizar los errores estándares así como la inestabilidad de los parámetros estimados debido al overfitting (particularmente en muestras pequeñas), es que, en lugar de estimar la GGM directamente invirtiendo la matriz de varianza-covarianza, el modelo se estima utilizando Least Absolute Shrinkage and Selection Operator (LASSO). A los fines de comparar las redes entre los grupos extremos de interés es que se consideran las siguientes medidas de invarianza: invarianza estructural (network structure invariance), invarianza en la fuerza global de las correlaciones (global strength invariance), e invarianza al nivel de las correlaciones parciales entre dos nodos dados (edge invariance). En cada una de estas se aplican pruebas de hipótesis basadas en permutaciones (permutation based hypothesis test) para verificar si se aprecian o no diferencias estadísticamente significativas en cada una de las medidas de invarianza.
@@ -652,7 +649,7 @@ layout(t(1:2))
 plot(Network_suicide, layout = L, title = "Suicide", maximum = Max)
 ```
 
-### Grupo NoIdeación Suicida
+### Grupo No Ideación Suicida
 ```{r}
 plot(Network_non_suicide, layout = L, title = "Non Suicide", maximum = Max)
 ```
